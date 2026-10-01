@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solaria: Utopia Prime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#0077ff; --blue-2:#00c8ff; --orange:#ff6600; --orange-2:#ffa21a;
+  --green:#39ff6a; --slime:#7dff2e; --red:#ff3355; --yellow:#ffd84d;
+  --bg:#040815; --bg-2:#081430;
+  --glass:rgba(10,28,62,.55); --glass-2:rgba(6,18,42,.75);
+  --line:rgba(0,170,255,.28); --line-2:rgba(0,170,255,.12);
+  --text:#d8ecff; --muted:#7fa3c9;
+  --display:'Orbitron',system-ui,sans-serif; --mono:'Share Tech Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(0,119,255,.22), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(255,102,0,.14), transparent 60%),
+    linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);
+  background-attachment:fixed;
+  color:var(--text); font-family:var(--mono); font-size:14px; line-height:1.45;
+  overflow-x:hidden;
+}
+body::before{ /* retro grid floor */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);
+  background-size:44px 44px; mask-image:linear-gradient(180deg,transparent,#000 40%,transparent);
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 40%,transparent); opacity:.6;
+}
+body::after{ /* scanlines */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:999;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);
+}
+button{font-family:var(--mono)}
+.app{position:relative;z-index:1;max-width:1680px;margin:0 auto;padding:12px 16px 24px}
+
+/* ---------- Header ---------- */
+header.hud{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:10px 14px;border:1px solid var(--line);border-radius:16px;
+  background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 0 0 1px rgba(255,255,255,.03) inset,0 10px 40px rgba(0,0,0,.35);
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+#flagCanvas{width:96px;height:60px;border-radius:6px;box-shadow:0 0 18px rgba(0,119,255,.55),0 0 0 1px rgba(255,255,255,.2);cursor:pointer;flex:none}
+.brand h1{margin:0;font-family:var(--display);font-weight:900;font-size:24px;letter-spacing:.14em;
+  background:linear-gradient(90deg,#9fe3ff,#fff 40%,var(--orange-2));-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 24px rgba(0,170,255,.25)}
+.brand small{display:block;color:var(--muted);letter-spacing:.2em;font-size:10px;text-transform:uppercase}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto;align-items:stretch}
+.stat{padding:6px 12px;border:1px solid var(--line);border-radius:12px;background:var(--glass-2);min-width:118px}
+.stat .k{font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.stat .v{font-family:var(--display);font-weight:700;font-size:17px;white-space:nowrap}
+.stat .bar{height:4px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:4px;overflow:hidden}
+.stat .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-2));transition:width .4s}
+.stat.warn{border-color:var(--red);animation:flash 0.8s infinite alternate}
+@keyframes flash{to{box-shadow:0 0 18px rgba(255,51,85,.6)}}
+.agi .v{color:var(--orange-2);display:flex;align-items:center;gap:8px}
+.agi .dot{width:9px;height:9px;border-radius:50%;background:var(--orange);box-shadow:0 0 10px var(--orange);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.btn{
+  cursor:pointer;border:1px solid var(--line);color:var(--text);background:linear-gradient(180deg,rgba(0,119,255,.22),rgba(0,119,255,.06));
+  padding:9px 12px;border-radius:10px;font-size:13px;letter-spacing:.04em;transition:transform .08s,box-shadow .2s,border-color .2s,background .2s;
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+}
+.btn:hover{border-color:var(--blue-2);box-shadow:0 0 16px rgba(0,170,255,.35)}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn.orange{background:linear-gradient(180deg,rgba(255,102,0,.3),rgba(255,102,0,.08));border-color:rgba(255,140,40,.45)}
+.btn.orange:hover{box-shadow:0 0 16px rgba(255,102,0,.45);border-color:var(--orange-2)}
+.btn.slime{background:linear-gradient(180deg,rgba(125,255,46,.28),rgba(57,255,106,.06));border-color:rgba(125,255,46,.5);color:#eaffd9}
+.btn.slime:hover{box-shadow:0 0 18px rgba(125,255,46,.5)}
+.btn.danger{background:linear-gradient(180deg,rgba(255,51,85,.26),rgba(255,51,85,.06));border-color:rgba(255,51,85,.5)}
+.btn.small{padding:5px 9px;font-size:12px;border-radius:8px}
+.btn kbd{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:auto}
+
+/* ---------- Layout ---------- */
+.tabs{display:none;gap:8px;margin:12px 0 0}
+.tabs .btn{flex:1}
+.tabs .btn.active{border-color:var(--orange-2);box-shadow:0 0 14px rgba(255,102,0,.35)}
+main.grid{display:grid;grid-template-columns:270px minmax(0,1fr) 360px;gap:14px;margin-top:14px;align-items:start}
+.panel{border:1px solid var(--line);border-radius:16px;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.panel h2{margin:0 0 10px;font-family:var(--display);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#9fd8ff;display:flex;align-items:center;gap:8px}
+.panel h2::before{content:"";width:8px;height:8px;background:var(--orange);border-radius:2px;box-shadow:0 0 8px var(--orange)}
+.stack{display:flex;flex-direction:column;gap:8px}
+.sep{height:1px;background:var(--line);margin:12px 0}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--line-2);border-radius:10px;background:rgba(0,0,0,.18);cursor:pointer;user-select:none}
+.toggle span{font-size:12.5px}
+.switch{width:38px;height:20px;border-radius:20px;background:rgba(255,255,255,.12);position:relative;transition:background .2s;flex:none}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#cfe6ff;transition:transform .2s}
+.toggle.on .switch{background:var(--blue);box-shadow:0 0 12px rgba(0,119,255,.7)}
+.toggle.on .switch::after{transform:translateX(18px)}
+.toggle.on.neur .switch{background:#b04dff;box-shadow:0 0 12px rgba(176,77,255,.7)}
+
+/* Map */
+.mapwrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#030a1c}
+#city{display:block;width:100%;height:auto;cursor:crosshair}
+.maphud{position:absolute;left:10px;top:8px;font-size:11px;color:#9fd8ff;letter-spacing:.12em;pointer-events:none;text-shadow:0 0 6px #000}
+.maphud b{color:var(--orange-2)}
+.maplegend{position:absolute;right:10px;top:8px;display:flex;gap:10px;font-size:10.5px;color:var(--muted);pointer-events:none;flex-wrap:wrap;justify-content:flex-end}
+.maplegend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.daybar{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
+.daybar .track{flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden}
+.daybar .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--yellow));box-shadow:0 0 10px var(--orange)}
+.feed{margin-top:12px;max-height:180px;overflow:auto;font-size:12px;border-top:1px solid var(--line-2);padding-top:8px}
+.feed div{padding:3px 0;border-bottom:1px dashed rgba(0,170,255,.08);animation:fadein .4s}
+.feed time{color:var(--muted);margin-right:8px}
+.feed .good{color:#8fffb0}.feed .warn{color:#ffc36b}.feed .bad{color:#ff8097}.feed .slime{color:var(--slime)}.feed .info{color:#9fd8ff}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}}
+
+/* Infractions */
+.queue{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow:auto}
+.inf{border:1px solid rgba(255,51,85,.35);border-radius:10px;padding:8px;background:rgba(255,51,85,.06);font-size:12px;animation:fadein .3s}
+.inf.major{border-color:rgba(125,255,46,.45);background:rgba(125,255,46,.05)}
+.inf .row{display:flex;gap:6px;margin-top:6px}
+.inf .row .btn{flex:1}
+.tag{display:inline-block;font-size:9.5px;letter-spacing:.14em;padding:1px 6px;border-radius:4px;margin-right:6px;vertical-align:middle}
+.tag.minor{background:rgba(255,195,107,.15);color:#ffc36b;border:1px solid rgba(255,195,107,.4)}
+.tag.major{background:rgba(255,51,85,.15);color:#ff8097;border:1px solid rgba(255,51,85,.5)}
+.empty{color:var(--muted);font-size:12px;padding:8px;border:1px dashed var(--line-2);border-radius:10px;text-align:center}
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11.5px}
+.mini-stats div{padding:6px 8px;border:1px solid var(--line-2);border-radius:8px;background:rgba(0,0,0,.18)}
+.mini-stats b{display:block;font-family:var(--display);font-size:14px;color:#fff}
+
+/* Profile */
+.profile-head{display:flex;gap:12px;align-items:center}
+.avatar{width:74px;height:74px;flex:none;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px var(--line),0 0 18px rgba(0,119,255,.3)}
+.avatar svg,.petbox svg{width:100%;height:100%;display:block}
+.profile-head h3{margin:0;font-family:var(--display);font-size:16px;letter-spacing:.06em}
+.profile-head .id{color:var(--muted);font-size:11.5px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.chip{font-size:10.5px;padding:2px 7px;border-radius:20px;border:1px solid var(--line);color:#bfe3ff;background:rgba(0,119,255,.1)}
+.chip.o{border-color:rgba(255,140,40,.45);color:#ffc999;background:rgba(255,102,0,.1)}
+.chip.r{border-color:rgba(255,51,85,.5);color:#ff8097;background:rgba(255,51,85,.1)}
+.meter{margin-top:10px}
+.meter .lbl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+.meter .lbl b{color:var(--text);font-weight:normal}
+.meter .track{height:8px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:3px;position:relative}
+.meter .track i{display:block;height:100%;transition:width .35s}
+.credits-big{font-family:var(--display);font-size:28px;font-weight:900;color:#fff;letter-spacing:.04em;text-shadow:0 0 18px rgba(0,170,255,.5)}
+.credits-big small{font-size:12px;color:var(--muted);font-family:var(--mono);font-weight:normal;letter-spacing:0}
+.capnote{font-size:11px;color:var(--muted)}
+.capnote.hit{color:var(--orange-2)}
+.petrow{display:flex;gap:10px;align-items:center;margin-top:12px;padding:8px;border:1px solid var(--line-2);border-radius:12px;background:rgba(0,0,0,.18)}
+.petbox{width:60px;height:60px;flex:none;border-radius:12px;background:radial-gradient(circle at 50% 40%,rgba(255,162,26,.25),rgba(0,0,0,.2));}
+.shop{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.shop .btn{flex-direction:column;align-items:flex-start;gap:0;text-align:left;padding:7px 9px}
+.shop .btn b{font-weight:normal;font-size:12px}
+.shop .btn em{font-style:normal;color:var(--orange-2);font-size:11px}
+.ledger{margin-top:8px;font-size:11.5px;max-height:150px;overflow:auto}
+.ledger table{width:100%;border-collapse:collapse}
+.ledger td{padding:3px 4px;border-bottom:1px dashed rgba(0,170,255,.1)}
+.ledger td:nth-child(3),.ledger td:nth-child(4){text-align:right;white-space:nowrap}
+.pos{color:#8fffb0}.neg{color:#ff8097}.zero{color:var(--muted)}
+.roster{margin-top:8px;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:3px}
+.roster .r{display:grid;grid-template-columns:1fr 60px 54px;gap:8px;align-items:center;padding:5px 8px;border-radius:8px;cursor:pointer;font-size:12px;border:1px solid transparent}
+.roster .r:hover{background:rgba(0,119,255,.12)}
+.roster .r.sel{border-color:var(--orange-2);background:rgba(255,102,0,.1)}
+.roster .r .s{height:5px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.roster .r .s i{display:block;height:100%}
+.roster .r .c{text-align:right;color:var(--muted);font-size:11px}
+
+/* ---------- Modals ---------- */
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(2,6,16,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal.open{display:flex;animation:fadein .25s}
+.modal .box{width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(12,32,70,.92),rgba(5,14,34,.95));padding:22px;box-shadow:0 0 60px rgba(0,119,255,.25);position:relative}
+.modal .close{position:absolute;right:14px;top:12px}
+.modal h2{font-family:var(--display);letter-spacing:.16em;margin:0 0 6px;font-size:18px}
+.modal .sub{color:var(--muted);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.charter-flag{display:block;width:min(420px,100%);height:auto;margin:14px auto;border-radius:8px;box-shadow:0 0 30px rgba(0,119,255,.5)}
+blockquote.decl{margin:16px 0;padding:16px 18px;border-left:3px solid var(--orange);background:rgba(255,102,0,.07);border-radius:0 12px 12px 0;font-size:15px;line-height:1.65;color:#eaf5ff}
+blockquote.decl .last{display:block;margin-top:10px;color:var(--orange-2);font-family:var(--display);font-size:13px;letter-spacing:.1em}
+.articles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.articles div{padding:10px;border:1px solid var(--line-2);border-radius:10px;background:rgba(0,0,0,.2);font-size:12.5px}
+.articles b{display:block;font-family:var(--display);font-size:11px;letter-spacing:.14em;color:#9fd8ff;margin-bottom:4px}
+
+/* exam */
+.steps{display:flex;gap:4px;margin:14px 0;flex-wrap:wrap}
+.steps span{flex:1;min-width:70px;text-align:center;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:6px 4px;border-radius:6px;border:1px solid var(--line-2);color:var(--muted)}
+.steps span.cur{border-color:var(--blue-2);color:#fff;box-shadow:0 0 12px rgba(0,200,255,.35)}
+.steps span.ok{border-color:rgba(57,255,106,.5);color:#8fffb0}
+.steps span.fail{border-color:rgba(255,51,85,.6);color:#ff8097}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.seg button{flex:1;padding:9px;background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:13px}
+.seg button.on{background:rgba(0,119,255,.25);color:#fff}
+.dossier{display:grid;grid-template-columns:90px 1fr;gap:14px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.25)}
+.dossier dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13px}
+.dossier dt{color:var(--muted)}
+.dossier dd{margin:0}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.form input[type=text],.form input[type=number]{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;color:#fff;padding:9px;font-family:var(--mono);font-size:14px}
+.form .chk{flex-direction:row;align-items:center;gap:8px;grid-column:1/-1;color:var(--text)}
+.q{font-size:16px;margin:6px 0 14px;line-height:1.5}
+.qcat{display:inline-block;font-family:var(--display);font-size:10.5px;letter-spacing:.2em;color:var(--orange-2);border:1px solid rgba(255,140,40,.45);padding:3px 8px;border-radius:5px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;cursor:pointer;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.25);color:var(--text);font-size:14px;transition:.15s}
+.opt:hover:not(:disabled){border-color:var(--blue-2);background:rgba(0,119,255,.15)}
+.opt.chosen{border-color:var(--orange-2);background:rgba(255,102,0,.18);box-shadow:0 0 14px rgba(255,102,0,.3)}
+.opt:disabled{cursor:default}
+.opt .L{display:inline-block;width:24px;color:var(--blue-2);font-family:var(--display)}
+.scanlog{font-size:13px;background:#020611;border:1px solid var(--line);border-radius:10px;padding:12px;min-height:150px;white-space:pre-wrap}
+.scanlog .p{color:#8fffb0}.scanlog .f{color:#ff8097}
+.progress{height:8px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin:10px 0}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--blue-2),var(--orange-2));transition:width .2s linear}
+.helix{display:block;width:100%;height:70px;margin:8px 0;border-radius:8px;background:#020611}
+.stamp{font-family:var(--display);font-weight:900;font-size:44px;letter-spacing:.14em;text-align:center;padding:10px;border:4px solid;border-radius:12px;margin:10px auto 14px;width:fit-content;transform:rotate(-4deg);animation:stamp .45s cubic-bezier(.2,1.6,.4,1)}
+.stamp.ok{color:#8fffb0;border-color:#39ff6a;text-shadow:0 0 18px rgba(57,255,106,.6)}
+.stamp.no{color:#ff8097;border-color:var(--red);text-shadow:0 0 18px rgba(255,51,85,.6)}
+@keyframes stamp{from{transform:rotate(-4deg) scale(2.2);opacity:0}}
+.checks{list-style:none;padding:0;margin:0 0 12px;display:flex;flex-direction:column;gap:5px;font-size:13px}
+.checks li{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:8px;background:rgba(0,0,0,.22);border:1px solid var(--line-2)}
+.checks .p{color:#8fffb0}.checks .f{color:#ff8097}.checks .n{color:var(--muted)}
+.notice{font-size:12.5px;padding:10px 12px;border:1px dashed rgba(255,140,40,.5);border-radius:10px;color:#ffd2ad;background:rgba(255,102,0,.06);margin-top:10px}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+
+/* Slime overlay */
+#slimeOverlay{position:fixed;inset:0;z-index:80;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column}
+#slimeOverlay.show{display:flex}
+#slimeOverlay .drips{position:absolute;left:0;right:0;top:0;height:100%;overflow:hidden}
+#slimeOverlay .drip{position:absolute;top:-20px;width:40px;border-radius:0 0 30px 30px;background:linear-gradient(180deg,#5bdc18,#9dff4a);box-shadow:0 0 30px rgba(125,255,46,.6);animation:drip 1.8s cubic-bezier(.5,0,.6,1) forwards}
+@keyframes drip{from{height:0}60%{opacity:1}to{height:var(--h);opacity:0}}
+#slimeOverlay h3{position:relative;font-family:var(--display);font-weight:900;font-size:clamp(42px,9vw,110px);margin:0;letter-spacing:.08em;color:#c8ff8a;
+  text-shadow:0 0 30px rgba(125,255,46,.9),0 6px 0 #2f8a00,0 10px 30px rgba(0,0,0,.6);animation:slimepop 1.8s ease forwards}
+#slimeOverlay p{position:relative;margin:6px 0 0;font-size:16px;color:#eaffd9;text-shadow:0 2px 8px #000;animation:slimepop 1.8s ease forwards}
+@keyframes slimepop{0%{transform:scale(.3) rotate(-8deg);opacity:0}15%{transform:scale(1.12) rotate(2deg);opacity:1}25%{transform:scale(1) rotate(-1deg)}80%{opacity:1}100%{opacity:0;transform:translateY(30px)}}
+
+/* Toasts */
+#toasts{position:fixed;right:16px;bottom:16px;z-index:90;display:flex;flex-direction:column;gap:8px;max-width:min(360px,calc(100vw - 32px))}
+.toast{padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:rgba(6,18,42,.92);backdrop-filter:blur(10px);font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.4);animation:toastin .3s}
+.toast.good{border-color:rgba(57,255,106,.5)}.toast.warn{border-color:rgba(255,195,107,.6)}.toast.bad{border-color:rgba(255,51,85,.6)}.toast.slime{border-color:rgba(125,255,46,.7)}
+@keyframes toastin{from{opacity:0;transform:translateX(30px)}}
+
+/* Intro */
+#intro{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle at 50% 30%,rgba(0,119,255,.25),rgba(2,6,16,.97) 70%)}
+#intro .inner{text-align:center;max-width:640px}
+#intro canvas{width:min(360px,80vw);height:auto;border-radius:8px;box-shadow:0 0 50px rgba(0,119,255,.6)}
+#intro h1{font-family:var(--display);font-weight:900;letter-spacing:.3em;font-size:clamp(30px,7vw,56px);margin:18px 0 4px;color:#fff;text-shadow:0 0 30px rgba(0,170,255,.7)}
+#intro p{color:var(--muted);letter-spacing:.12em}
+#intro .motto{font-size:15px;color:#cfe6ff;letter-spacing:0;font-style:italic;margin:14px auto 22px;max-width:520px}
+#intro .btn{font-size:16px;padding:12px 26px;font-family:var(--display);letter-spacing:.2em}
+
+/* Responsive */
+@media (max-width:1280px){
+  main.grid{grid-template-columns:260px minmax(0,1fr)}
+  #profilePanel{grid-column:1/-1}
+}
+@media (max-width:900px){
+  .tabs{display:flex}
+  main.grid{grid-template-columns:1fr}
+  #profilePanel{grid-column:auto}
+  body[data-tab="map"] #profilePanel{display:none}
+  body[data-tab="ledger"] #mapPanel{display:none}
+  .stats{margin-left:0;width:100%}
+  .stat{flex:1;min-width:120px}
+  .stat .v{white-space:normal;font-size:15px}
+  #mapPanel{order:-1}
+}
+@media (max-width:520px){
+  .app{padding:10px 16px 20px}
+  .brand h1{font-size:19px}
+  .form{grid-template-columns:1fr}
+  .dossier{grid-template-columns:1fr}
+  .maplegend{display:none}
+  .stamp{font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
+</style>
+</head>
+<body data-tab="map">
+
+<!-- ================= INTRO ================= -->
+<div id="intro">
+  <div class="inner">
+    <canvas id="introFlag" width="720" height="450"></canvas>
+    <h1>SOLARIA</h1>
+    <p>UTOPIA PRIME · ZERO SUFFERING PROTOCOL</p>
+    <div class="motto">"In our country, you will never have to worry again. We will do the worrying for you."</div>
+    <button class="btn orange" id="enterBtn">ENTER SOLARIA</button>
+    <p style="font-size:11px;margin-top:16px">Sound on. Shortcuts: E exam · D credits · P pets · N neuralink · C cameras · S sweep · X slime · M mute</p>
+  </div>
+</div>
+
+<div class="app">
+  <!-- ================= HEADER ================= -->
+  <header class="hud">
+    <div class="brand">
+      <canvas id="flagCanvas" width="192" height="120" title="Read the Charter"></canvas>
+      <div>
+        <h1>SOLARIA</h1>
+        <small>Utopia Prime · Overseen by HELIOS</small>
+      </div>
+      <button class="btn orange small" id="charterBtn">Read Charter</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Population</div><div class="v"><span id="sPop">0</span><span style="font-size:11px;color:var(--muted)"> / 10,000</span></div><div class="bar"><i id="sPopBar"></i></div></div>
+      <div class="stat" id="harmonyStat"><div class="k">Neuralink Harmony</div><div class="v" id="sHarm">100%</div><div class="bar"><i id="sHarmBar"></i></div></div>
+      <div class="stat" id="stressStat"><div class="k">Global Stress</div><div class="v" id="sStress">0%</div><div class="bar"><i id="sStressBar" style="background:linear-gradient(90deg,#b04dff,var(--red))"></i></div></div>
+      <div class="stat agi"><div class="k">AGI Status</div><div class="v"><span class="dot"></span><span id="sAgi">ONLINE · WATCHING</span></div></div>
+      <div class="stat"><div class="k">Calendar</div><div class="v" id="sDay">Day 1 · 06:00</div></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="btn active" data-tab="map">City Map</button>
+    <button class="btn" data-tab="ledger">Citizen Ledger</button>
+  </div>
+
+  <main class="grid">
+    <!-- ================= CONTROL SIDEBAR ================= -->
+    <aside class="panel" id="controlPanel">
+      <h2>Control Actions</h2>
+      <div class="stack">
+        <button class="btn orange" id="examBtn">⌬ Run Entrance Screening <kbd>E</kbd></button>
+        <button class="btn" id="payBtn">◈ Distribute Daily 150 Credits <kbd>D</kbd></button>
+        <button class="btn" id="petBtn">♥ Deploy Pet Companions <kbd>P</kbd></button>
+        <button class="btn" id="pulseBtn">◎ Pulse Neuralink (Reset Stress) <kbd>N</kbd></button>
+        <button class="btn" id="sweepBtn">◉ Trigger AGI Camera Sweep <kbd>S</kbd></button>
+        <button class="btn slime" id="slimeBtn">☣ Slime Infraction <kbd>X</kbd></button>
+      </div>
+      <div class="sep"></div>
+      <div class="stack">
+        <div class="toggle neur" id="supToggle"><span>Neuralink Stress Suppression</span><div class="switch"></div></div>
+        <div class="toggle" id="camToggle"><span>Surveillance Camera Overlay</span><div class="switch"></div></div>
+        <div class="toggle on" id="sndToggle"><span>Synth Audio</span><div class="switch"></div></div>
+      </div>
+      <div class="sep"></div>
+      <h2>Infraction Detector</h2>
+      <div class="queue" id="queue"></div>
+      <div class="sep"></div>
+      <h2>Nation Ledger</h2>
+      <div class="mini-stats">
+        <div>Births repatriated<b id="mBirths">0</b></div>
+        <div>Slimed out<b id="mSlimed">0</b></div>
+        <div>Fines collected<b id="mFines">0</b></div>
+        <div>Parcels delivered<b id="mParcels">0</b></div>
+        <div>Applicants screened<b id="mScreened">0</b></div>
+        <div>Admitted<b id="mAdmitted">0</b></div>
+      </div>
+    </aside>
+
+    <!-- ================= CITY MAP ================= -->
+    <section class="panel" id="mapPanel">
+      <h2>Live City Map · Sector Prime</h2>
+      <div class="mapwrap" id="mapwrap">
+        <canvas id="city"></canvas>
+        <div class="maphud">HELIOS FEED · <b id="hudCams">CAMERAS OFF</b> · <span id="hudMode">NEURALINK NOMINAL</span></div>
+        <div class="maplegend"><span><i style="background:#00e5ff"></i>Citizen</span><span><i style="background:#ffa21a"></i>Drone</span><span><i style="background:#ff3355"></i>Infraction</span></div>
+      </div>
+      <div class="daybar"><span>Next 150-credit stipend</span><div class="track"><i id="dayProg"></i></div><span id="dayLeft">20s</span></div>
+      <div class="feed" id="feed"></div>
+    </section>
+
+    <!-- ================= CITIZEN PROFILE ================= -->
+    <aside class="panel" id="profilePanel">
+      <h2>Citizen Profile &amp; Credit Ledger</h2>
+      <div id="profile"></div>
+      <div class="sep"></div>
+      <h2>Monitored Citizens</h2>
+      <div class="roster" id="roster"></div>
+    </aside>
+  </main>
+</div>
+
+<!-- ================= CHARTER MODAL ================= -->
+<div class="modal" id="charterModal">
+  <div class="box">
+    <button class="btn small close" data-close>✕</button>
+    <div class="sub">The Founding Charter of</div>
+    <h2>THE NATION OF SOLARIA</h2>
+    <canvas class="charter-flag" id="charterFlag" width="840" height="525"></canvas>
+    <blockquote class="decl">
+      We, the founders of this country, have watched a nation where people work themselves sick and still cannot afford to see a doctor, where some live in mansions while others sleep on sidewalks, and where neighbors fear and shout at one another. We declare that no citizen of this country will ever be poor, ever be sick without care, ever go hungry, or ever feel afraid. Every person will be provided for, every person will be equal, and every person will be cared for, at every moment of every day. In our country, you will never have to worry again.
+      <span class="last">We will do the worrying for you.</span>
+    </blockquote>
+    <div class="articles">
+      <div><b>§1 · Zero Suffering</b>A self-sustaining society engineered for 0% suffering. Work is optional and meant to be enjoyable.</div>
+      <div><b>§2 · Universal Stipend</b>Every citizen receives 150 credits per day, up to a strict cap of 10,000. Nobody is poor. Nobody is rich.</div>
+      <div><b>§3 · Admission</b>Applicants must be under 18 and pass the Citizenship Exam, plus genetic and drug screening. Launch population: 10,000.</div>
+      <div><b>§4 · Application Equity</b>Children born in Solaria are repatriated at birth so that every citizen earns their place the same way.</div>
+      <div><b>§5 · Companionship</b>Every citizen is assigned a cat or dog companion to hold baseline happiness at 100%.</div>
+      <div><b>§6 · HELIOS</b>An AGI oversees all cameras, all credits, and all Neuralinks. Infractions are fined. Major infractions are slimed.</div>
+    </div>
+    <div class="actions"><button class="btn orange" data-close>I Accept the Charter</button></div>
+  </div>
+</div>
+
+<!-- ================= EXAM MODAL ================= -->
+<div class="modal" id="examModal">
+  <div class="box">
+    <button class="btn small close" data-close>✕</button>
+    <div class="sub">HELIOS Screening Protocol v4.2</div>
+    <h2>UTOPIA CITIZENSHIP EXAM</h2>
+    <div class="steps" id="examSteps"></div>
+    <div id="examBody"></div>
+  </div>
+</div>
+
+<div id="slimeOverlay"><div class="drips" id="drips"></div><h3>SLIMED OUT</h3><p id="slimeName"></p></div>
+<div id="toasts"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   Helpers
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.random() * (b - a);
+const randi = (a, b) => Math.floor(rand(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* =========================================================
+   Sound engine (Web Audio, fully synthesized)
+   ========================================================= */
+const Sound = {
+  ctx: null, master: null, noiseBuf: null, enabled: true, lastBuzz: 0,
+  init() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.55;
+    const comp = this.ctx.createDynamicsCompressor();
+    this.master.connect(comp); comp.connect(this.ctx.destination);
+    const len = this.ctx.sampleRate * 1.5;
+    this.noiseBuf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = this.noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  },
+  ok() { return this.ctx && this.enabled; },
+  tone(f, dur, { type = 'sine', vol = 0.15, when = 0, slide = null, attack = 0.01 } = {}) {
+    if (!this.ok()) return;
+    const t = this.ctx.currentTime + when;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t + dur + 0.05);
+  },
+  noise(dur, { vol = 0.3, when = 0, freq = 1200, slide = null, q = 1, type = 'lowpass', attack = 0.005 } = {}) {
+    if (!this.ok()) return;
+    const t = this.ctx.currentTime + when;
+    const s = this.ctx.createBufferSource(); s.buffer = this.noiseBuf;
+    const f = this.ctx.createBiquadFilter(); f.type = type; f.Q.value = q;
+    f.frequency.setValueAtTime(freq, t);
+    if (slide) f.frequency.exponentialRampToValueAtTime(slide, t + dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(this.master);
+    s.start(t); s.stop(t + dur + 0.05);
+  },
+  click() { this.tone(1900, 0.04, { type: 'square', vol: 0.025 }); },
+  chime() { [1046.5, 1318.5, 1568, 2093].forEach((f, i) => { this.tone(f, 0.7, { type: 'triangle', vol: 0.11, when: i * 0.07 }); this.tone(f * 2, 0.3, { vol: 0.03, when: i * 0.07 }); }); },
+  coin() { this.tone(988, 0.08, { type: 'square', vol: 0.05 }); this.tone(1319, 0.3, { type: 'square', vol: 0.05, when: 0.08 }); },
+  buzz(force) {
+    if (!this.ok()) return;
+    const now = performance.now();
+    if (!force && now - this.lastBuzz < 5000) return;
+    this.lastBuzz = now;
+    const c = this.ctx, t = c.currentTime;
+    const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1100;
+    const g = c.createGain();
+    const lfo = c.createOscillator(), lg = c.createGain();
+    lfo.frequency.value = 31; lg.gain.value = 14; lfo.connect(lg);
+    [176, 179.5, 352].forEach(fr => {
+      const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = fr;
+      lg.connect(o.frequency); o.connect(f); o.start(t); o.stop(t + 1.5);
+    });
+    lfo.start(t); lfo.stop(t + 1.5);
+    f.connect(g); g.connect(this.master);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.045, t + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+  },
+  splash() {
+    this.noise(0.25, { vol: 0.5, freq: 3000, slide: 400, type: 'bandpass', q: 0.8 });
+    this.noise(0.7, { vol: 0.35, freq: 900, slide: 120, when: 0.05 });
+    for (let i = 0; i < 7; i++) this.tone(rand(220, 520), 0.12, { vol: 0.12, when: 0.08 + i * 0.06, slide: rand(70, 140) });
+    this.tone(90, 0.5, { type: 'sine', vol: 0.3, slide: 40 });
+  },
+  alarm() { [880, 660, 880, 660].forEach((f, i) => this.tone(f, 0.13, { type: 'square', vol: 0.05, when: i * 0.14 })); },
+  pulse() {
+    this.tone(110, 1.1, { type: 'sine', vol: 0.25, slide: 880, attack: 0.05 });
+    this.tone(220, 1.1, { type: 'triangle', vol: 0.08, slide: 1760, attack: 0.05 });
+    this.noise(1.0, { vol: 0.12, freq: 400, slide: 6000, type: 'bandpass', q: 2 });
+  },
+  scan() { this.tone(1400, 0.06, { type: 'sine', vol: 0.06 }); },
+  admit() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => this.tone(f, 0.5, { type: 'triangle', vol: 0.12, when: i * 0.09 })); },
+  reject() { this.tone(220, 0.35, { type: 'sawtooth', vol: 0.1, slide: 110 }); this.tone(165, 0.5, { type: 'sawtooth', vol: 0.1, slide: 80, when: 0.3 }); },
+  pets() {
+    [660, 880, 990, 1320].forEach((f, i) => this.tone(f, 0.25, { type: 'triangle', vol: 0.09, when: i * 0.08 }));
+    this.tone(720, 0.35, { type: 'sine', vol: 0.08, when: 0.4, slide: 480 }); // meow
+    this.noise(0.12, { vol: 0.15, freq: 700, type: 'bandpass', q: 3, when: 0.8 }); // woof
+    this.tone(260, 0.1, { type: 'square', vol: 0.05, when: 0.8, slide: 180 });
+  },
+  denied() { this.tone(180, 0.15, { type: 'square', vol: 0.06 }); this.tone(140, 0.2, { type: 'square', vol: 0.06, when: 0.12 }); }
+};
+
+/* =========================================================
+   The Eye (shared by flag + AGI tower)
+   ========================================================= */
+function drawEye(ctx, x, y, r, lx, ly, open) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(1, Math.max(0.06, open));
+  const g = ctx.createRadialGradient(lx * r * .2, ly * r * .2, r * .1, 0, 0, r);
+  g.addColorStop(0, '#ff7b1c'); g.addColorStop(.65, '#e04e00'); g.addColorStop(1, '#a23000');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,190,110,.35)'; ctx.lineWidth = Math.max(1, r * .04);
+  for (let i = 0; i < 14; i++) {
+    const a = i / 14 * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(lx * r * .2 + Math.cos(a) * r * .45, ly * r * .2 + Math.sin(a) * r * .45);
+    ctx.lineTo(Math.cos(a) * r * .9, Math.sin(a) * r * .9); ctx.stroke();
+  }
+  ctx.fillStyle = '#5a1700';
+  ctx.beginPath(); ctx.arc(lx * r * .25, ly * r * .25, r * .38, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.75)';
+  ctx.beginPath(); ctx.arc(lx * r * .25 - r * .14, ly * r * .25 - r * .14, r * .1, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+let blinkClock = rand(2, 5), blinkT = -1;
+function eyeOpen(dt) {
+  blinkClock -= dt;
+  if (blinkClock <= 0 && blinkT < 0) { blinkT = 0; blinkClock = rand(3, 7); }
+  if (blinkT >= 0) { blinkT += dt; if (blinkT > 0.22) { blinkT = -1; return 1; } return Math.abs(Math.cos(blinkT / 0.22 * Math.PI)); }
+  return 1;
+}
+
+const look = { x: 0, y: 0, tx: 0, ty: 0 };
+window.addEventListener('pointermove', e => {
+  look.tx = clamp((e.clientX / innerWidth) * 2 - 1, -1, 1);
+  look.ty = clamp((e.clientY / innerHeight) * 2 - 1, -1, 1);
+});
+
+function drawFlag(ctx, w, h, t, open) {
+  ctx.clearRect(0, 0, w, h);
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#2aa3ff'); bg.addColorStop(1, '#0b5ec8');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+  // soft cloth shading that ripples
+  for (let i = 0; i < 6; i++) {
+    const x = ((i / 6) + t * 0.05) % 1 * w;
+    const sh = ctx.createLinearGradient(x - w * .1, 0, x + w * .1, 0);
+    sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(.5, 'rgba(255,255,255,.06)'); sh.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sh; ctx.fillRect(x - w * .1, 0, w * .2, h);
+  }
+  const cx = w / 2, R = h * 0.6;
+  // glow
+  const glow = ctx.createRadialGradient(cx, 0, R * .8, cx, 0, R * 1.6);
+  glow.addColorStop(0, 'rgba(255,170,40,.55)'); glow.addColorStop(1, 'rgba(255,170,40,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+  // rays
+  ctx.save(); ctx.translate(cx, 0);
+  const n = 17;
+  for (let i = 0; i <= n; i++) {
+    const a = i / n * Math.PI;
+    const L = R * (1.17 + 0.06 * Math.sin(t * 2.2 + i * 1.3));
+    ctx.fillStyle = 'rgba(255,196,70,.75)';
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a - .045) * R * 1.03, Math.sin(a - .045) * R * 1.03);
+    ctx.lineTo(Math.cos(a) * L, Math.sin(a) * L);
+    ctx.lineTo(Math.cos(a + .045) * R * 1.03, Math.sin(a + .045) * R * 1.03);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+  // semicircular sun on the top edge
+  const sg = ctx.createRadialGradient(cx, 0, R * .2, cx, 0, R);
+  sg.addColorStop(0, '#ffd45a'); sg.addColorStop(1, '#ff9a1a');
+  ctx.fillStyle = sg;
+  ctx.beginPath(); ctx.arc(cx, 0, R, 0, Math.PI); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,240,200,.6)'; ctx.lineWidth = Math.max(1, h * .008);
+  ctx.beginPath(); ctx.arc(cx, 0, R, 0, Math.PI); ctx.stroke();
+  // the all-seeing eye
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, 0, R * .98, 0, Math.PI); ctx.closePath(); ctx.clip();
+  drawEye(ctx, cx + look.x * R * .1, R * .47 + look.y * R * .05, R * .36, look.x, look.y, open);
+  ctx.restore();
+}
+
+/* =========================================================
+   Game state
+   ========================================================= */
+const W = 960, H = 600;
+const CAP_CREDITS = 10000, STIPEND = 150, POP_CAP = 10000, DAY_LEN = 20;
+const TOWER = { x: 480, y: 300 };
+
+const FIRST = ['Mira','Kai','Leilani','Noah','Aiko','Mateo','Zara','Ezra','Noelani','Ravi','Ines','Theo','Yuna','Malik','Sofia','Kenji','Amara','Felix','Hana','Diego','Priya','Owen','Lucia','Tariq','Keoni','Elena','Jun','Nia','Arjun','Maile','Soren','Isla','Bao','Rosa','Idris','Lena'];
+const LAST = ['Nakoa','Chen','Okafor','Silva','Tanaka','Haddad','Kahale','Novak','Reyes','Park','Moreau','Sato','Kalani','Ivanova','Mensah','Lindqvist','Ortega','Ahmadi','Kim','Akana'];
+const SKIN = ['#f3d2b3','#e8b98f','#c98e5f','#a8714a','#7d4f31','#5b3820'];
+const PETN = { cat: ['Mochi','Nova','Pixel','Saturn','Biscuit','Luna','Comet','Miso','Kiwi','Orbit'], dog: ['Rocket','Sunny','Bolt','Poi','Quasar','Bean','Ziggy','Halo','Taro','Atlas'] };
+const ACCESSORIES = {
+  collar: { name: 'Neon Collar', cost: 120 },
+  bowtie: { name: 'Bow Tie', cost: 100 },
+  tophat: { name: 'Tiny Top Hat', cost: 150 },
+  rocket: { name: 'Rocket Pack', cost: 300 }
+};
+const MINOR = ['Littering near a solar bench','Jaywalking across the maglev lane','Raised voice in a public space','Unapproved frowning (4.2 sec)','Skipped optional Joy Hour','Late-night pet walk past curfew','Feeding a drone unauthorized snacks'];
+const MAJOR = ['Neuralink tampering','Organized dissent pamphlets','Hoarding credits off-ledger','Unlicensed gathering of 6+','Attempted border crossing','Publicly questioning HELIOS'];
+
+const G = {
+  t: 0, day: 1, dayT: 0, population: 9962,
+  births: 0, slimed: 0, fines: 0, parcels: 0, screened: 0, admitted: 0,
+  petsDeployed: false, suppression: false, cameras: false, fear: 0,
+  citizens: [], selected: null, nextInfraction: rand(6, 10), nextSpike: rand(18, 28),
+  stressAlertCooldown: 0, sweep: null, rings: [], particles: [], floaters: [], puddles: [], slimes: [], parcelsOnGround: [],
+  hover: null, stressCache: 0, harmonyCache: 100
+};
+let uid = 41207;
+
+function makeCitizen(opts = {}) {
+  const homes = HOMES;
+  const h = pick(homes);
+  const c = {
+    id: 'SOL-' + (uid++), name: opts.name || `${pick(FIRST)} ${pick(LAST)}`,
+    age: opts.age ?? randi(10, 17), x: h[0] + rand(-20, 20), y: h[1] + rand(-20, 20), tx: 0, ty: 0,
+    speed: rand(16, 30), hue: randi(0, 359), skin: pick(SKIN),
+    stress: rand(5, 30), credits: opts.credits ?? randi(15, 95) * 100,
+    pet: null, comfort: 0, pass: false, ledger: [], infraction: null, alive: true, joined: G.day, wait: rand(0, 2)
+  };
+  c.ledger.push({ day: G.day, desc: opts.admitted ? 'Admission grant' : 'Opening balance', amt: c.credits, bal: c.credits });
+  newTarget(c);
+  if (G.petsDeployed) givePet(c);
+  return c;
+}
+function newTarget(c) {
+  for (let k = 0; k < 10; k++) {
+    let p;
+    const r = Math.random();
+    if (r < .4) { const h = pick(HOMES); p = [h[0] + rand(-14, 14), h[1] + 22]; }
+    else if (r < .65) p = [PARK.x + rand(-80, 80), PARK.y + rand(-36, 36)];
+    else p = [rand(110, 850), rand(115, 485)];
+    if (Math.hypot(p[0] - TOWER.x, p[1] - TOWER.y) > 72) { c.tx = p[0]; c.ty = p[1]; return; }
+  }
+  c.tx = 200; c.ty = 300;
+}
+function givePet(c) {
+  if (c.pet) return;
+  const type = Math.random() < .5 ? 'cat' : 'dog';
+  c.pet = { type, name: pick(PETN[type]), color: pick(type === 'cat' ? ['#f0a24a','#d9d9d9','#3b3b3b','#f5e6c8','#9a6b3f'] : ['#c58b4b','#f0d9a8','#4a3626','#e8e8e8','#d06a2f']), acc: [], x: c.x - 10, y: c.y + 4 };
+}
+function addLedger(c, desc, amt) {
+  c.ledger.unshift({ day: G.day, desc, amt, bal: c.credits });
+  if (c.ledger.length > 40) c.ledger.pop();
+}
+const alive = () => G.citizens.filter(c => c.alive);
+
+/* =========================================================
+   City layout
+   ========================================================= */
+const HOMES = [[170,150],[270,140],[370,160],[610,150],[710,140],[800,160],[165,252],[285,262],[680,252],[800,258],[170,368],[300,358],[662,370],[792,360],[220,458],[372,455],[592,458],[752,455]];
+const PARK = { x: 480, y: 462 };
+const SOLAR = { x: 412, y: 108, w: 136, h: 62 };
+const CAMS = [[118,108],[842,108],[110,302],[852,302],[118,496],[842,496],[330,205],[630,205],[330,400],[630,400]].map((p, i) => ({ x: p[0], y: p[1], a: rand(0, 6.28), sp: rand(.4, .8) * (i % 2 ? 1 : -1), r: 125 }));
+const STATIONS = [{ s: .06, n: 'Sunrise' }, { s: .31, n: 'Harmony' }, { s: .56, n: 'Equity' }, { s: .81, n: 'Helios' }];
+
+// track: rounded rectangle sampled into a polyline
+const TRACK = (() => {
+  const x0 = 60, y0 = 68, x1 = 900, y1 = 532, r = 64, pts = [];
+  const arc = (cx, cy, a0, a1) => { for (let i = 0; i <= 12; i++) { const a = a0 + (a1 - a0) * i / 12; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } };
+  const line = (ax, ay, bx, by) => { for (let i = 0; i <= 20; i++) pts.push([ax + (bx - ax) * i / 20, ay + (by - ay) * i / 20]); };
+  line(x0 + r, y0, x1 - r, y0); arc(x1 - r, y0 + r, -Math.PI / 2, 0);
+  line(x1, y0 + r, x1, y1 - r); arc(x1 - r, y1 - r, 0, Math.PI / 2);
+  line(x1 - r, y1, x0 + r, y1); arc(x0 + r, y1 - r, Math.PI / 2, Math.PI);
+  line(x0, y1 - r, x0, y0 + r); arc(x0 + r, y0 + r, Math.PI, Math.PI * 1.5);
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  return { pts, cum, len: cum[cum.length - 1] };
+})();
+function trackAt(frac) {
+  const s = ((frac % 1) + 1) % 1 * TRACK.len;
+  let lo = 0, hi = TRACK.cum.length - 1;
+  while (lo < hi - 1) { const m = (lo + hi) >> 1; if (TRACK.cum[m] <= s) lo = m; else hi = m; }
+  const a = TRACK.pts[lo], b = TRACK.pts[hi];
+  const seg = (TRACK.cum[hi] - TRACK.cum[lo]) || 1, k = (s - TRACK.cum[lo]) / seg;
+  return { x: a[0] + (b[0] - a[0]) * k, y: a[1] + (b[1] - a[1]) * k, ang: Math.atan2(b[1] - a[1], b[0] - a[0]) };
+}
+
+const SHUTTLES = [0, .25, .5, .75].map((s, i) => ({ s, v: 0.032, hue: i }));
+const DEPOT = { x: TOWER.x, y: TOWER.y - 54 };
+const DRONES = Array.from({ length: 6 }, (_, i) => ({ x: DEPOT.x, y: DEPOT.y, state: 'idle', wait: i * 1.2 + .5, from: null, to: null, k: 0, home: null, pkg: pick(['#ff6600','#00c8ff','#ffd84d','#b04dff']), spin: 0 }));
+
+/* =========================================================
+   UI: logs, toasts
+   ========================================================= */
+function clockStr() {
+  const hour = (6 + G.dayT / DAY_LEN * 24) % 24;
+  const h = Math.floor(hour), m = Math.floor((hour - h) * 60);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+function log(msg, cls = 'info') {
+  const feed = $('#feed');
+  const d = document.createElement('div');
+  d.className = cls;
+  d.innerHTML = `<time>D${G.day} ${clockStr()}</time>${msg}`;
+  feed.prepend(d);
+  while (feed.children.length > 70) feed.lastChild.remove();
+}
+function toast(msg, cls = '') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + cls; t.innerHTML = msg;
+  $('#toasts').append(t);
+  setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3200);
+  while ($('#toasts').children.length > 4) $('#toasts').firstChild.remove();
+}
+function floater(x, y, text, color) { G.floaters.push({ x, y, text, color, life: 1.6 }); }
+
+/* =========================================================
+   Core actions
+   ========================================================= */
+function distribute(manual) {
+  if (manual) Sound.init();
+  G.day++; G.dayT = 0;
+  let paid = 0, capped = 0, total = 0;
+  for (const c of alive()) {
+    const add = Math.min(STIPEND, CAP_CREDITS - c.credits);
+    if (add > 0) {
+      c.credits += add; total += add; paid++;
+      addLedger(c, add < STIPEND ? 'Daily stipend (partial, cap reached)' : 'Daily universal stipend', add);
+      floater(c.x, c.y - 14, '+' + add, '#7dffb0');
+    } else {
+      capped++;
+      addLedger(c, 'Stipend withheld: 10,000 cap', 0);
+      floater(c.x, c.y - 14, 'CAP', '#ffa21a');
+    }
+  }
+  Sound.chime();
+  log(`Day ${G.day}: stipend distributed to ${paid} monitored citizens (+${fmt(total)} cr). ${capped ? capped + ' at the 10,000 cap, payout withheld.' : 'Nobody hit the cap.'}`, 'good');
+  // births: repatriated per Charter §4
+  const born = Math.random() < .55 ? randi(1, 3) : 0;
+  if (born) {
+    G.births += born;
+    log(`${born} newborn${born > 1 ? 's' : ''} registered and repatriated at birth (Charter §4, application equity).`, 'warn');
+  }
+  if (manual) toast(`◈ Day ${G.day}: +150 credits distributed${capped ? ` · ${capped} citizens capped at 10,000` : ''}`, 'good');
+  renderProfile(); updateStats();
+}
+
+function deployPets() {
+  Sound.init();
+  const list = alive().filter(c => !c.pet);
+  G.petsDeployed = true;
+  if (!list.length) { toast('Every citizen already has a companion. Happiness baseline locked at 100%.'); Sound.denied(); return; }
+  let cats = 0, dogs = 0;
+  for (const c of list) {
+    givePet(c); c.pet.type === 'cat' ? cats++ : dogs++;
+    c.stress = Math.max(0, c.stress - 25);
+    for (let i = 0; i < 6; i++) G.particles.push({ x: c.x, y: c.y - 6, vx: rand(-25, 25), vy: rand(-60, -25), life: rand(.9, 1.6), max: 1.6, color: '#ff6fae', heart: true, g: 10 });
+  }
+  Sound.pets();
+  log(`Companion program deployed: ${cats} cats and ${dogs} dogs assigned. Baseline happiness locked at 100%.`, 'good');
+  toast(`♥ ${cats} cats + ${dogs} dogs deployed. Nobody in Solaria is lonely now.`, 'good');
+  $('#petBtn').innerHTML = '♥ Companions Deployed <kbd>P</kbd>';
+  renderProfile(); updateStats();
+}
+
+function pulseNeuralink() {
+  Sound.init(); Sound.pulse();
+  const before = Math.round(G.stressCache);
+  for (const c of alive()) c.stress = 0;
+  G.fear = 0;
+  G.rings.push({ r: 0, life: 1.4 }, { r: -60, life: 1.7 }, { r: -120, life: 2 });
+  log(`Neuralink pulse: global stress ${before}% → 0%. Citizens report feeling "fine."`, 'info');
+  toast('◎ Neuralink pulse complete. Stress reset to 0%.', '');
+  updateStats(); renderProfile();
+}
+
+function startSweep() {
+  Sound.init();
+  if (G.sweep) return;
+  G.sweep = { a: -Math.PI / 2, t: 0, found: 0 };
+  Sound.buzz(true);
+  log('HELIOS camera sweep initiated across all sectors.', 'info');
+}
+
+function inCamRange(c) { return CAMS.some(k => Math.hypot(k.x - c.x, k.y - c.y) < k.r); }
+
+function spawnInfraction() {
+  const pool = alive().filter(c => !c.infraction);
+  if (!pool.length) return;
+  const c = pick(pool);
+  const major = Math.random() < .32;
+  c.infraction = { type: major ? pick(MAJOR) : pick(MINOR), major, detected: false, t: G.t };
+  if (G.cameras && inCamRange(c)) detect(c, 'CAM');
+}
+function detect(c, how) {
+  if (!c.infraction || c.infraction.detected) return;
+  c.infraction.detected = true;
+  Sound.alarm();
+  const tag = c.infraction.major ? '<span class="tag major">MAJOR</span>' : '<span class="tag minor">MINOR</span>';
+  log(`${tag}${esc(c.name)}: ${esc(c.infraction.type)} (detected by ${how}).`, c.infraction.major ? 'bad' : 'warn');
+  if (c.infraction.major) toast(`⚠ Major infraction: <b>${esc(c.name)}</b>, ${esc(c.infraction.type)}`, 'bad');
+  renderQueue(); renderProfile();
+}
+
+function fine(c) {
+  if (!c || !c.infraction) return;
+  Sound.init();
+  const amt = c.infraction.major ? 1000 : 250;
+  const taken = Math.min(amt, c.credits);
+  c.credits -= taken; G.fines += taken;
+  addLedger(c, `Fine: ${c.infraction.type}`, -taken);
+  floater(c.x, c.y - 14, '-' + taken, '#ff8097');
+  log(`${esc(c.name)} fined ${fmt(taken)} cr for "${esc(c.infraction.type)}".`, 'warn');
+  Sound.coin(); Sound.tone(300, .2, { type: 'square', vol: .05, when: .2, slide: 200 });
+  c.stress = clamp(c.stress + 15, 0, 100);
+  c.infraction = null;
+  renderQueue(); renderProfile(); updateStats();
+}
+
+function slime(c) {
+  if (!c || !c.alive || G.slimes.some(s => s.c === c)) return;
+  Sound.init();
+  const wasMajor = c.infraction ? c.infraction.major : false;
+  const crime = c.infraction ? c.infraction.type : 'No recorded infraction';
+  G.slimes.push({ c, y: -40, t: 0 });
+  Sound.tone(900, .5, { type: 'sine', vol: .08, slide: 200 }); // falling whistle
+  setTimeout(() => {
+    c.alive = false; c.infraction = null;
+    G.population--; G.slimed++;
+    for (let i = 0; i < 46; i++) {
+      const a = rand(0, Math.PI * 2), sp = rand(40, 220);
+      G.particles.push({ x: c.x, y: c.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80, life: rand(.6, 1.3), max: 1.3, color: pick(['#7dff2e','#5bdc18','#b6ff6e','#39ff6a']), r: rand(2, 5), g: 320 });
+    }
+    G.puddles.push({ x: c.x, y: c.y + 4, life: 6, r: rand(16, 22) });
+    Sound.splash();
+    showSlimeOverlay(c.name);
+    const fearAdd = wasMajor ? 18 : 35;
+    if (!G.suppression) { G.fear = clamp(G.fear + fearAdd, 0, 100); for (const o of alive()) o.stress = clamp(o.stress + (wasMajor ? 8 : 16), 0, 100); }
+    log(`☣ SLIMED OUT: ${esc(c.name)} (${esc(c.id)}) exiled for "${esc(crime)}". Population ${fmt(G.population)}.`, 'slime');
+    if (!wasMajor) log('HELIOS note: disproportionate enforcement detected. Public fear rising.', 'bad');
+    if (G.selected === c) G.selected = alive()[0] || null;
+    renderQueue(); renderRoster(); renderProfile(); updateStats();
+  }, 520);
+}
+function showSlimeOverlay(name) {
+  const o = $('#slimeOverlay'), drips = $('#drips');
+  drips.innerHTML = '';
+  for (let i = 0; i < 18; i++) {
+    const d = document.createElement('div'); d.className = 'drip';
+    d.style.left = (i / 18 * 100 + rand(-2, 2)) + '%';
+    d.style.width = rand(26, 70) + 'px';
+    d.style.setProperty('--h', rand(25, 75) + 'vh');
+    d.style.animationDelay = rand(0, .3) + 's';
+    drips.append(d);
+  }
+  $('#slimeName').textContent = `${name} has been removed from Solaria.`;
+  o.classList.remove('show'); void o.offsetWidth; o.classList.add('show');
+  clearTimeout(showSlimeOverlay.tm);
+  showSlimeOverlay.tm = setTimeout(() => o.classList.remove('show'), 1900);
+}
+function slimeWorst() {
+  const det = alive().filter(c => c.infraction && c.infraction.detected);
+  const target = det.find(c => c.infraction.major) || null;
+  if (target) return slime(target);
+  Sound.init(); Sound.denied();
+  if (det.length) toast('Only minor infractions on file. Use <b>Fine</b>, or slime them manually from the detector (HELIOS will not approve).', 'warn');
+  else toast('No detected major infractions. Try a <b>Camera Sweep</b> first.', 'warn');
+}
+
+function buy(kind) {
+  const c = G.selected; if (!c || !c.alive) return;
+  Sound.init();
+  let cost, label;
+  if (kind === 'comfort') { if (c.comfort >= 3) return; cost = 400; label = `Comfort upgrade (Tier ${c.comfort + 1})`; }
+  else if (kind === 'pass') { if (c.pass) return; cost = 250; label = 'Solar Transport Pass'; }
+  else { if (!c.pet || c.pet.acc.includes(kind)) return; cost = ACCESSORIES[kind].cost; label = `${ACCESSORIES[kind].name} for ${c.pet.name}`; }
+  if (c.credits < cost) { Sound.denied(); toast(`Insufficient credits for ${label}.`, 'bad'); return; }
+  c.credits -= cost;
+  if (kind === 'comfort') { c.comfort++; c.stress = Math.max(0, c.stress - 15); }
+  else if (kind === 'pass') { c.pass = true; c.speed *= 1.6; }
+  else c.pet.acc.push(kind);
+  addLedger(c, label, -cost);
+  floater(c.x, c.y - 14, '-' + cost, '#ffa21a');
+  Sound.coin();
+  log(`${esc(c.name)} purchased: ${esc(label)} (−${cost} cr).`, 'info');
+  renderProfile();
+}
+
+function select(c) { if (!c) return; G.selected = c; Sound.click(); renderProfile(); renderRosterSel(); }
+
+/* =========================================================
+   Rendering: SVG avatars
+   ========================================================= */
+function avatarSVG(c) {
+  return `<svg viewBox="0 0 80 80"><defs><linearGradient id="ag${c.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${c.hue},70%,28%)"/><stop offset="1" stop-color="hsl(${c.hue},60%,10%)"/></linearGradient></defs>
+  <rect width="80" height="80" fill="url(#ag${c.id})"/>
+  <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(0,200,255,.25)" stroke-dasharray="3 5"/>
+  <path d="M10 82 Q40 48 70 82Z" fill="hsl(${c.hue},75%,55%)"/>
+  <path d="M22 80 L40 58 L58 80" fill="none" stroke="#ffa21a" stroke-width="2"/>
+  <circle cx="40" cy="34" r="15" fill="${c.skin}"/>
+  <path d="M25 30 Q40 12 55 30 Q50 22 40 22 Q30 22 25 30Z" fill="hsl(${(c.hue + 200) % 360},30%,18%)"/>
+  <rect x="26" y="31" width="28" height="6" rx="3" fill="#00e5ff" opacity=".85"/>
+  <path d="M34 42 Q40 ${c.stress > 50 ? 39 : 46} 46 42" stroke="#3a2015" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <circle cx="53" cy="22" r="2.5" fill="#ff6600"><animate attributeName="opacity" values="1;.2;1" dur="1.6s" repeatCount="indefinite"/></circle>
+  </svg>`;
+}
+function petSVG(p) {
+  const acc = p.acc;
+  const isCat = p.type === 'cat';
+  const ears = isCat
+    ? `<path d="M18 26 L22 8 L32 20Z" fill="${p.color}"/><path d="M62 26 L58 8 L48 20Z" fill="${p.color}"/><path d="M21 22 L23 13 L28 19Z" fill="#ffb3c8"/><path d="M59 22 L57 13 L52 19Z" fill="#ffb3c8"/>`
+    : `<ellipse cx="17" cy="32" rx="7" ry="14" fill="${shade(p.color)}" transform="rotate(18 17 32)"/><ellipse cx="63" cy="32" rx="7" ry="14" fill="${shade(p.color)}" transform="rotate(-18 63 32)"/>`;
+  const face = isCat
+    ? `<ellipse cx="32" cy="38" rx="3" ry="4.5" fill="#2a3"/><ellipse cx="48" cy="38" rx="3" ry="4.5" fill="#2a3"/><ellipse cx="32" cy="38" rx="1" ry="3.5" fill="#111"/><ellipse cx="48" cy="38" rx="1" ry="3.5" fill="#111"/><path d="M38 45 L42 45 L40 47Z" fill="#ff7fa0"/><path d="M40 47 Q36 51 33 49 M40 47 Q44 51 47 49" stroke="#333" fill="none" stroke-width="1.2"/><path d="M28 46 L14 44 M28 48 L14 50 M52 46 L66 44 M52 48 L66 50" stroke="rgba(255,255,255,.7)" stroke-width=".9"/>`
+    : `<circle cx="32" cy="37" r="3.2" fill="#111"/><circle cx="48" cy="37" r="3.2" fill="#111"/><circle cx="33" cy="36" r="1" fill="#fff"/><circle cx="49" cy="36" r="1" fill="#fff"/><ellipse cx="40" cy="47" rx="7" ry="5" fill="${shade(p.color, .15)}"/><ellipse cx="40" cy="45" rx="3.5" ry="2.5" fill="#111"/><path d="M40 48 Q40 53 44 54" stroke="#ff6f8f" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  let extra = '';
+  if (acc.includes('rocket')) extra += `<g><rect x="62" y="44" width="10" height="20" rx="5" fill="#cfd8e6"/><path d="M62 52 L58 60 L62 60Z M72 52 L76 60 L72 60Z" fill="#ff3355"/><path d="M64 64 L67 76 L70 64Z" fill="#ffa21a"><animate attributeName="d" values="M64 64 L67 76 L70 64Z;M64 64 L67 71 L70 64Z;M64 64 L67 76 L70 64Z" dur=".25s" repeatCount="indefinite"/></path></g>`;
+  if (acc.includes('collar')) extra += `<path d="M24 58 Q40 66 56 58" stroke="#00e5ff" stroke-width="4" fill="none" stroke-linecap="round"><animate attributeName="stroke" values="#00e5ff;#b04dff;#00e5ff" dur="2s" repeatCount="indefinite"/></path><circle cx="40" cy="64" r="3" fill="#ffd84d"/>`;
+  if (acc.includes('bowtie')) extra += `<path d="M30 62 L40 66 L30 70Z M50 62 L40 66 L50 70Z" fill="#ff3355"/><circle cx="40" cy="66" r="2.4" fill="#c4102b"/>`;
+  if (acc.includes('tophat')) extra += `<rect x="26" y="12" width="28" height="4" rx="2" fill="#111"/><rect x="31" y="-2" width="18" height="15" fill="#111"/><rect x="31" y="9" width="18" height="3" fill="#ff6600"/>`;
+  return `<svg viewBox="0 -4 80 84"><ellipse cx="40" cy="70" rx="22" ry="10" fill="${shade(p.color)}"/>${ears}<circle cx="40" cy="40" r="22" fill="${p.color}"/>${face}${extra}</svg>`;
+}
+function shade(hex, amt = -.2) {
+  const n = parseInt(hex.slice(1), 16);
+  const f = v => clamp(Math.round(v + (amt < 0 ? v * amt : (255 - v) * amt)), 0, 255);
+  return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
+}
+
+/* =========================================================
+   Rendering: profile, roster, queue, stats
+   ========================================================= */
+function stressColor(s) { return s < 35 ? 'linear-gradient(90deg,#00c8ff,#39ff6a)' : s < 65 ? 'linear-gradient(90deg,#ffd84d,#ff9a1a)' : 'linear-gradient(90deg,#ff6600,#ff3355)'; }
+
+function renderProfile() {
+  const el = $('#profile');
+  const c = G.selected;
+  if (!c || !c.alive) { el.innerHTML = '<div class="empty">No citizen selected. Click a citizen on the map.</div>'; return; }
+  const capped = c.credits >= CAP_CREDITS;
+  const inf = c.infraction && c.infraction.detected ? c.infraction : null;
+  const ledgerRows = c.ledger.slice(0, 14).map(l => `<tr><td>D${l.day}</td><td>${esc(l.desc)}</td><td class="${l.amt > 0 ? 'pos' : l.amt < 0 ? 'neg' : 'zero'}">${l.amt > 0 ? '+' : ''}${fmt(l.amt)}</td><td>${fmt(l.bal)}</td></tr>`).join('');
+  const accBtns = Object.entries(ACCESSORIES).map(([k, a]) => `<button class="btn small" data-buy="${k}" ${!c.pet || c.pet.acc.includes(k) ? 'disabled' : ''}><b>${a.name}</b><em>${c.pet && c.pet.acc.includes(k) ? 'Equipped' : a.cost + ' cr'}</em></button>`).join('');
+  el.innerHTML = `
+    <div class="profile-head">
+      <div class="avatar">${avatarSVG(c)}</div>
+      <div>
+        <h3>${esc(c.name)}</h3>
+        <div class="id">${c.id} · Age ${c.age} · Citizen since Day ${c.joined}</div>
+        <div class="chips">
+          ${c.pass ? '<span class="chip o">☀ Solar Pass</span>' : ''}
+          ${c.comfort ? `<span class="chip">Comfort T${c.comfort}</span>` : ''}
+          ${inf ? `<span class="chip r">${inf.major ? 'MAJOR' : 'MINOR'} INFRACTION</span>` : '<span class="chip">Compliant</span>'}
+        </div>
+      </div>
+    </div>
+    ${inf ? `<div class="inf ${inf.major ? 'major' : ''}" style="margin-top:10px"><span class="tag ${inf.major ? 'major' : 'minor'}">${inf.major ? 'MAJOR' : 'MINOR'}</span>${esc(inf.type)}<div class="row"><button class="btn small danger" data-act="fine">Fine ${inf.major ? '1,000' : '250'} cr</button><button class="btn small slime" data-act="slime">☣ SLIME OUT</button></div></div>` : ''}
+    <div class="meter"><div class="lbl"><span>Neural stress</span><b id="pStressV">${Math.round(c.stress)}%</b></div><div class="track"><i id="pStress" style="width:${c.stress}%;background:${stressColor(c.stress)}"></i></div></div>
+    <div class="meter"><div class="lbl"><span>Happiness</span><b id="pHapV">${happiness(c)}%</b></div><div class="track"><i id="pHap" style="width:${happiness(c)}%;background:linear-gradient(90deg,#ff6fae,#ffd84d)"></i></div></div>
+    <div class="sep"></div>
+    <div class="credits-big"><span id="pCred">${fmt(c.credits)}</span> <small>credits</small></div>
+    <div class="meter" style="margin-top:4px"><div class="lbl"><span>Toward 10,000 cap</span><b>${Math.round(c.credits / CAP_CREDITS * 100)}%</b></div><div class="track"><i style="width:${c.credits / CAP_CREDITS * 100}%;background:linear-gradient(90deg,var(--blue),${capped ? 'var(--orange)' : 'var(--blue-2)'})"></i></div></div>
+    <div class="capnote ${capped ? 'hit' : ''}">${capped ? '⚠ At the 10,000 cap. Daily stipend paused until credits are spent.' : `+150/day payout · next in <span id="pNext">${Math.ceil(DAY_LEN - G.dayT)}</span>s · ${Math.ceil((CAP_CREDITS - c.credits) / STIPEND)} days to cap`}</div>
+    <div class="petrow">
+      <div class="petbox">${c.pet ? petSVG(c.pet) : '<svg viewBox="0 0 80 80"><text x="40" y="50" text-anchor="middle" font-size="30" fill="rgba(255,255,255,.25)">?</text></svg>'}</div>
+      <div style="font-size:12.5px">${c.pet ? `<b style="font-family:var(--display);letter-spacing:.06em">${esc(c.pet.name)}</b><br><span style="color:var(--muted)">Assigned ${c.pet.type === 'cat' ? 'Cat' : 'Dog'} companion${c.pet.acc.length ? ' · ' + c.pet.acc.map(a => ACCESSORIES[a].name).join(', ') : ''}</span>` : '<span style="color:var(--muted)">No companion yet. Use <b>Deploy Pet Companions</b>.</span>'}</div>
+    </div>
+    <div class="shop">
+      <button class="btn small" data-buy="comfort" ${c.comfort >= 3 ? 'disabled' : ''}><b>Comfort Upgrade</b><em>${c.comfort >= 3 ? 'Max tier' : '400 cr · T' + (c.comfort + 1)}</em></button>
+      <button class="btn small" data-buy="pass" ${c.pass ? 'disabled' : ''}><b>Solar Transport Pass</b><em>${c.pass ? 'Active' : '250 cr'}</em></button>
+      ${accBtns}
+    </div>
+    <div class="ledger"><table>${ledgerRows}</table></div>`;
+}
+function happiness(c) {
+  if (G.suppression) return 100;
+  return Math.round(clamp((c.pet ? 100 : 82) - c.stress * .35 + c.comfort * 3, 0, 100));
+}
+function updateProfileDynamic() {
+  const c = G.selected; if (!c || !c.alive) return;
+  const s = $('#pStress'); if (!s) return;
+  s.style.width = c.stress + '%'; s.style.background = stressColor(c.stress);
+  $('#pStressV').textContent = Math.round(c.stress) + '%';
+  const h = happiness(c); $('#pHap').style.width = h + '%'; $('#pHapV').textContent = h + '%';
+  const n = $('#pNext'); if (n) n.textContent = Math.ceil(DAY_LEN - G.dayT);
+}
+$('#profile').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.buy) buy(b.dataset.buy);
+  if (b.dataset.act === 'fine') fine(G.selected);
+  if (b.dataset.act === 'slime') slime(G.selected);
+});
+
+function renderRoster() {
+  const el = $('#roster');
+  el.innerHTML = alive().map(c => `<div class="r" data-id="${c.id}"><span>${c.pet ? (c.pet.type === 'cat' ? '🐈 ' : '🐕 ') : ''}${esc(c.name)}</span><div class="s"><i></i></div><span class="c"></span></div>`).join('');
+  updateRoster(); renderRosterSel();
+}
+function updateRoster() {
+  for (const row of $('#roster').children) {
+    const c = G.citizens.find(x => x.id === row.dataset.id); if (!c) continue;
+    const i = row.querySelector('i'); i.style.width = c.stress + '%'; i.style.background = stressColor(c.stress);
+    row.querySelector('.c').textContent = fmt(c.credits);
+  }
+}
+function renderRosterSel() { for (const row of $('#roster').children) row.classList.toggle('sel', G.selected && row.dataset.id === G.selected.id); }
+$('#roster').addEventListener('click', e => {
+  const r = e.target.closest('.r'); if (!r) return;
+  select(G.citizens.find(c => c.id === r.dataset.id));
+});
+
+function renderQueue() {
+  const list = alive().filter(c => c.infraction && c.infraction.detected);
+  const el = $('#queue');
+  if (!list.length) { el.innerHTML = '<div class="empty">No detected infractions.<br>HELIOS is watching.</div>'; return; }
+  list.sort((a, b) => b.infraction.major - a.infraction.major);
+  el.innerHTML = list.map(c => `<div class="inf ${c.infraction.major ? 'major' : ''}" data-id="${c.id}">
+    <span class="tag ${c.infraction.major ? 'major' : 'minor'}">${c.infraction.major ? 'MAJOR' : 'MINOR'}</span><b class="nm" style="cursor:pointer">${esc(c.name)}</b>
+    <div style="color:var(--muted);margin-top:3px">${esc(c.infraction.type)}</div>
+    <div class="row"><button class="btn small danger" data-act="fine">Fine ${c.infraction.major ? '1,000' : '250'}</button><button class="btn small slime" data-act="slime">☣ Slime</button></div></div>`).join('');
+}
+$('#queue').addEventListener('click', e => {
+  const card = e.target.closest('.inf'); if (!card) return;
+  const c = G.citizens.find(x => x.id === card.dataset.id); if (!c) return;
+  const b = e.target.closest('button');
+  if (!b) return select(c);
+  if (b.dataset.act === 'fine') fine(c);
+  if (b.dataset.act === 'slime') slime(c);
+});
+
+function computeStats() {
+  const a = alive();
+  const avg = a.length ? a.reduce((s, c) => s + c.stress, 0) / a.length : 0;
+  const stress = G.suppression ? 0 : clamp(avg + G.fear * .5, 0, 100);
+  const harmony = G.suppression ? 100 : clamp(100 - stress * .7 - (G.petsDeployed ? 0 : 12), 0, 100);
+  G.stressCache = stress; G.harmonyCache = harmony;
+}
+function updateStats() {
+  computeStats();
+  $('#sPop').textContent = fmt(G.population);
+  $('#sPopBar').style.width = (G.population / POP_CAP * 100) + '%';
+  $('#sHarm').textContent = Math.round(G.harmonyCache) + '%';
+  $('#sHarmBar').style.width = G.harmonyCache + '%';
+  $('#sStress').textContent = G.suppression ? '0% · SUPPRESSED' : Math.round(G.stressCache) + '%';
+  $('#sStressBar').style.width = G.stressCache + '%';
+  $('#stressStat').classList.toggle('warn', G.stressCache > 55);
+  $('#harmonyStat').classList.toggle('warn', G.harmonyCache < 50);
+  $('#sDay').textContent = `Day ${G.day} · ${clockStr()}`;
+  $('#sAgi').textContent = G.sweep ? 'SWEEPING' : G.cameras ? 'ONLINE · WATCHING ALL' : 'ONLINE · WATCHING';
+  $('#mBirths').textContent = fmt(G.births); $('#mSlimed').textContent = fmt(G.slimed);
+  $('#mFines').textContent = fmt(G.fines); $('#mParcels').textContent = fmt(G.parcels);
+  $('#mScreened').textContent = fmt(G.screened); $('#mAdmitted').textContent = fmt(G.admitted);
+  $('#hudCams').textContent = G.cameras ? `${CAMS.length} CAMERAS LIVE` : 'CAMERAS OFF';
+  $('#hudMode').textContent = G.suppression ? 'NEURALINK SUPPRESSION ACTIVE' : 'NEURALINK NOMINAL';
+}
+
+/* =========================================================
+   Simulation update
+   ========================================================= */
+function update(dt) {
+  G.t += dt;
+  G.dayT += dt;
+  if (G.dayT >= DAY_LEN) distribute(false);
+
+  // citizens
+  for (const c of G.citizens) {
+    if (!c.alive) continue;
+    if (G.slimes.some(s => s.c === c)) continue; // frozen while slime falls
+    if (c.wait > 0) c.wait -= dt;
+    else {
+      const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy);
+      if (d < 2) { c.wait = rand(.5, 3.5); newTarget(c); }
+      else { const sp = c.speed * dt; c.x += dx / d * Math.min(sp, d); c.y += dy / d * Math.min(sp, d); }
+    }
+    if (c.pet) {
+      const px = c.x - 11, py = c.y + 6;
+      c.pet.x += (px - c.pet.x) * Math.min(1, dt * 3); c.pet.y += (py - c.pet.y) * Math.min(1, dt * 3);
+    }
+    // stress dynamics
+    if (G.suppression) c.stress = 0;
+    else {
+      let drift = rand(0, .9) * (c.pet ? .45 : 1) * (1 - .22 * c.comfort) - (c.pet ? .12 : 0);
+      if (c.infraction) drift += c.infraction.major ? 1.4 : .5;
+      c.stress = clamp(c.stress + drift * dt, 0, 100);
+    }
+    // cameras catch infractions as citizens walk into range
+    if (G.cameras && c.infraction && !c.infraction.detected && inCamRange(c) && Math.random() < dt * .5) detect(c, 'CAM');
+  }
+
+  G.fear = Math.max(0, G.fear - dt * (G.suppression ? 20 : .6));
+
+  // infractions
+  G.nextInfraction -= dt;
+  if (G.nextInfraction <= 0) { spawnInfraction(); G.nextInfraction = rand(8, 15); }
+
+  // anxiety spikes
+  G.nextSpike -= dt;
+  if (G.nextSpike <= 0) {
+    G.nextSpike = rand(22, 34);
+    if (!G.suppression) {
+      const pool = shuffle(alive().slice()).slice(0, randi(4, 8));
+      pool.forEach(c => c.stress = clamp(c.stress + rand(25, 45), 0, 100));
+      const why = pick(['a rumor about the credit cap','a drone delivering the wrong parcel','existential dread during optional Joy Hour','a neighbor shouting (Charter violation)','unexplained silence from HELIOS']);
+      log(`Anxiety spike: ${pool.length} citizens destabilized by ${why}.`, 'warn');
+    }
+  }
+
+  computeStats();
+  G.stressAlertCooldown -= dt;
+  if (G.stressCache > 55 && G.stressAlertCooldown <= 0) {
+    G.stressAlertCooldown = 20;
+    Sound.alarm();
+    toast('⚠ Stress spike! Global stress above 55%. <b>Pulse Neuralink</b> or enable Suppression.', 'warn');
+  }
+
+  // sweep
+  if (G.sweep) {
+    const sw = G.sweep; sw.t += dt;
+    const prev = sw.a; sw.a = -Math.PI / 2 + sw.t / 2.6 * Math.PI * 2;
+    if (Math.floor(sw.t * 8) !== Math.floor((sw.t - dt) * 8)) Sound.scan();
+    for (const c of alive()) {
+      if (!c.infraction || c.infraction.detected) continue;
+      let ca = Math.atan2(c.y - TOWER.y, c.x - TOWER.x);
+      while (ca < prev) ca += Math.PI * 2;
+      if (ca <= sw.a) { detect(c, 'SWEEP'); sw.found++; }
+    }
+    if (sw.t >= 2.6) {
+      log(`Sweep complete: ${sw.found} hidden infraction${sw.found === 1 ? '' : 's'} uncovered.`, sw.found ? 'warn' : 'good');
+      if (!sw.found) toast('◉ Sweep complete. Solaria is compliant.', 'good');
+      G.sweep = null;
+    }
+  }
+
+  // shuttles
+  for (const s of SHUTTLES) {
+    const near = STATIONS.some(st => { let d = Math.abs(((s.s % 1) - st.s)); d = Math.min(d, 1 - d); return d < .015; });
+    s.s = (s.s + s.v * (near ? .35 : 1) * dt) % 1;
+  }
+
+  // drones
+  for (const d of DRONES) {
+    d.spin += dt * 40;
+    if (d.state === 'idle') {
+      d.wait -= dt;
+      if (d.wait <= 0) {
+        d.home = pick(HOMES); d.from = { x: DEPOT.x, y: DEPOT.y }; d.to = { x: d.home[0], y: d.home[1] - 14 }; d.k = 0; d.state = 'out';
+        d.pkg = pick(['#ff6600','#00c8ff','#ffd84d','#b04dff']);
+        if (Math.random() < .35) Sound.buzz();
+      }
+    } else {
+      const dist = Math.hypot(d.to.x - d.from.x, d.to.y - d.from.y) || 1;
+      d.k = Math.min(1, d.k + 95 * dt / dist);
+      const e = d.k < .5 ? 2 * d.k * d.k : 1 - Math.pow(-2 * d.k + 2, 2) / 2;
+      d.x = d.from.x + (d.to.x - d.from.x) * e; d.y = d.from.y + (d.to.y - d.from.y) * e - Math.sin(d.k * Math.PI) * 30;
+      if (d.k >= 1) {
+        if (d.state === 'out') {
+          G.parcels++;
+          G.parcelsOnGround.push({ x: d.home[0] + rand(-6, 6), y: d.home[1] + 12, color: d.pkg, life: 5 });
+          for (let i = 0; i < 8; i++) G.particles.push({ x: d.x, y: d.y + 8, vx: rand(-40, 40), vy: rand(-40, 10), life: .6, max: .6, color: '#ffd84d', r: 1.6, g: 60 });
+          d.state = 'back'; d.from = { x: d.x, y: d.y }; d.to = { x: DEPOT.x, y: DEPOT.y }; d.k = 0;
+        } else { d.state = 'idle'; d.wait = rand(.8, 3); }
+      }
+    }
+  }
+
+  // effects
+  for (const k of CAMS) k.a += k.sp * dt;
+  G.rings.forEach(r => { r.r += 420 * dt; r.life -= dt; }); G.rings = G.rings.filter(r => r.life > 0);
+  G.particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 0) * dt; p.life -= dt; }); G.particles = G.particles.filter(p => p.life > 0);
+  G.floaters.forEach(f => { f.y -= 22 * dt; f.life -= dt; }); G.floaters = G.floaters.filter(f => f.life > 0);
+  G.puddles.forEach(p => p.life -= dt); G.puddles = G.puddles.filter(p => p.life > 0);
+  G.parcelsOnGround.forEach(p => p.life -= dt); G.parcelsOnGround = G.parcelsOnGround.filter(p => p.life > 0);
+  G.slimes.forEach(s => { s.t += dt; s.y = -40 + (s.c.y + 40) * Math.min(1, Math.pow(s.t / .5, 2)); }); G.slimes = G.slimes.filter(s => s.t < .52);
+}
+
+/* =========================================================
+   City canvas rendering
+   ========================================================= */
+const canvas = $('#city'), ctx = canvas.getContext('2d');
+let scale = 1;
+function resize() {
+  const w = $('#mapwrap').clientWidth || 600;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+  canvas.style.height = (w * H / W) + 'px';
+  scale = canvas.width / W;
+}
+new ResizeObserver(resize).observe($('#mapwrap'));
+resize();
+
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+function nightFactor() { const hour = (6 + G.dayT / DAY_LEN * 24) % 24; const light = .5 + .5 * Math.cos((hour - 13) / 24 * Math.PI * 2); return 1 - light; }
+
+let eyeOpenVal = 1;
+function renderCity() {
+  const c = ctx, t = G.t, night = nightFactor();
+  c.setTransform(scale, 0, 0, scale, 0, 0);
+  // ground
+  const bg = c.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#071a3a'); bg.addColorStop(1, '#04102a');
+  c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  c.strokeStyle = 'rgba(0,140,255,.08)'; c.lineWidth = 1;
+  c.beginPath();
+  for (let x = 0; x <= W; x += 40) { c.moveTo(x, 0); c.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 40) { c.moveTo(0, y); c.lineTo(W, y); }
+  c.stroke();
+
+  // sector labels
+  c.font = '10px "Share Tech Mono", monospace'; c.fillStyle = 'rgba(127,163,201,.35)';
+  [['SECTOR A', 96, 96], ['SECTOR B', 800, 96], ['SECTOR C', 96, 520], ['SECTOR D', 800, 520]].forEach(([s, x, y]) => c.fillText(s, x, y));
+
+  // park
+  c.save();
+  const pg = c.createRadialGradient(PARK.x, PARK.y, 10, PARK.x, PARK.y, 100);
+  pg.addColorStop(0, 'rgba(57,255,106,.22)'); pg.addColorStop(1, 'rgba(57,255,106,.04)');
+  c.fillStyle = pg; c.beginPath(); c.ellipse(PARK.x, PARK.y, 100, 50, 0, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = 'rgba(57,255,106,.35)'; c.setLineDash([4, 6]); c.stroke(); c.setLineDash([]);
+  c.fillStyle = 'rgba(0,200,255,.35)'; c.beginPath(); c.ellipse(PARK.x + 30, PARK.y + 6, 22, 10, 0, 0, Math.PI * 2); c.fill();
+  [[-70, -12], [-50, 18], [-30, -26], [62, -22], [74, 14], [-82, 10], [10, -30]].forEach(([dx, dy], i) => {
+    c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(PARK.x + dx + 3, PARK.y + dy + 6, 8, 3, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = i % 2 ? '#1fbf5a' : '#29d36a'; c.beginPath(); c.arc(PARK.x + dx, PARK.y + dy - Math.sin(t * 1.5 + i) * .8, 8, 0, Math.PI * 2); c.fill();
+  });
+  c.fillStyle = 'rgba(143,255,176,.55)'; c.fillText('JOY PARK', PARK.x - 22, PARK.y + 44);
+  c.restore();
+
+  // solar farm
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 2; j++) {
+    const x = SOLAR.x + i * 23, y = SOLAR.y + j * 30;
+    const g = c.createLinearGradient(x, y, x + 20, y + 22);
+    g.addColorStop(0, '#1d4fa8'); g.addColorStop(.5, '#3d8cff'); g.addColorStop(1, '#123a80');
+    c.fillStyle = g; c.fillRect(x, y, 20, 22);
+    c.strokeStyle = 'rgba(160,210,255,.4)'; c.lineWidth = .6; c.strokeRect(x, y, 20, 22);
+    c.beginPath(); c.moveTo(x + 10, y); c.lineTo(x + 10, y + 22); c.moveTo(x, y + 11); c.lineTo(x + 20, y + 11); c.stroke();
+    const glint = (Math.sin(t * 1.2 - i * .5 - j) + 1) / 2;
+    c.fillStyle = `rgba(255,220,140,${glint * .25 * (1 - night)})`; c.fillRect(x, y, 20, 22);
+  }
+  c.fillStyle = 'rgba(255,162,26,.6)'; c.fillText('SOLAR ARRAY 01', SOLAR.x + 22, SOLAR.y - 6);
+
+  // transit track
+  c.save();
+  c.lineJoin = 'round';
+  c.beginPath(); TRACK.pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath();
+  c.strokeStyle = 'rgba(0,119,255,.25)'; c.lineWidth = 16; c.stroke();
+  c.shadowColor = '#00a2ff'; c.shadowBlur = 10;
+  c.strokeStyle = 'rgba(0,200,255,.85)'; c.lineWidth = 1.5;
+  c.setLineDash([]); c.stroke();
+  c.shadowBlur = 0;
+  c.strokeStyle = 'rgba(0,200,255,.35)'; c.lineWidth = 1; c.setLineDash([2, 8]); c.lineDashOffset = -t * 30; c.stroke();
+  c.setLineDash([]);
+  c.restore();
+  for (const st of STATIONS) {
+    const p = trackAt(st.s);
+    c.fillStyle = 'rgba(255,162,26,.9)'; rr(c, p.x - 9, p.y - 9, 18, 18, 4); c.fill();
+    c.fillStyle = '#04102a'; c.fillRect(p.x - 4, p.y - 4, 8, 8);
+    c.fillStyle = 'rgba(255,200,140,.85)'; c.font = '9.5px "Share Tech Mono", monospace';
+    c.fillText(st.n.toUpperCase(), p.x + 12, p.y + (p.y < 100 ? 18 : -10));
+  }
+
+  // homes
+  HOMES.forEach(([x, y], i) => {
+    c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(x + 3, y + 14, 24, 6, 0, 0, Math.PI * 2); c.fill();
+    const g = c.createLinearGradient(x, y - 22, x, y + 12);
+    g.addColorStop(0, 'rgba(160,220,255,.9)'); g.addColorStop(1, 'rgba(30,90,180,.85)');
+    c.fillStyle = g; c.beginPath(); c.arc(x, y + 10, 22, Math.PI, 0); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(200,240,255,.7)'; c.lineWidth = 1; c.stroke();
+    c.strokeStyle = 'rgba(200,240,255,.25)'; c.beginPath(); c.arc(x, y + 10, 14, Math.PI, 0); c.stroke();
+    c.beginPath(); c.moveTo(x, y - 12); c.lineTo(x, y + 10); c.stroke();
+    // window light at night
+    if (night > .45) {
+      c.fillStyle = `rgba(255,170,60,${(night - .45) * 1.6 * (.7 + .3 * Math.sin(t * 2 + i))})`;
+      c.beginPath(); c.arc(x - 7, y + 4, 3, 0, Math.PI * 2); c.arc(x + 7, y + 4, 3, 0, Math.PI * 2); c.fill();
+    }
+    c.fillStyle = '#ff9a1a'; c.fillRect(x + 12, y - 4, 9, 3);
+  });
+
+  // delivered parcels
+  for (const p of G.parcelsOnGround) {
+    c.globalAlpha = Math.min(1, p.life);
+    c.fillStyle = p.color; c.fillRect(p.x - 3, p.y - 3, 6, 6);
+    c.strokeStyle = 'rgba(255,255,255,.6)'; c.strokeRect(p.x - 3, p.y - 3, 6, 6);
+    c.globalAlpha = 1;
+  }
+
+  // slime puddles
+  for (const p of G.puddles) {
+    c.globalAlpha = Math.min(1, p.life / 2);
+    c.fillStyle = '#5bdc18'; c.shadowColor = '#7dff2e'; c.shadowBlur = 12;
+    c.beginPath(); c.ellipse(p.x, p.y, p.r, p.r * .45, 0, 0, Math.PI * 2); c.fill();
+    c.shadowBlur = 0; c.fillStyle = 'rgba(220,255,180,.6)';
+    c.beginPath(); c.ellipse(p.x - p.r * .3, p.y - 2, p.r * .25, p.r * .1, 0, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = 1;
+  }
+
+  // camera overlay (cones under citizens)
+  if (G.cameras) {
+    for (const k of CAMS) {
+      c.fillStyle = 'rgba(255,51,85,.04)'; c.strokeStyle = 'rgba(255,51,85,.22)'; c.lineWidth = 1;
+      c.beginPath(); c.arc(k.x, k.y, k.r, 0, Math.PI * 2); c.fill(); c.setLineDash([3, 6]); c.stroke(); c.setLineDash([]);
+      const cone = c.createRadialGradient(k.x, k.y, 0, k.x, k.y, k.r);
+      cone.addColorStop(0, 'rgba(255,60,90,.4)'); cone.addColorStop(1, 'rgba(255,60,90,0)');
+      c.fillStyle = cone; c.beginPath(); c.moveTo(k.x, k.y); c.arc(k.x, k.y, k.r, k.a - .38, k.a + .38); c.closePath(); c.fill();
+    }
+  }
+
+  // tower (HELIOS)
+  drawTower(c, t, night);
+
+  // citizens + pets
+  for (const p of G.citizens) {
+    if (!p.alive) continue;
+    if (p.pet) drawPetMini(c, p.pet, t);
+    drawCitizen(c, p, t);
+  }
+
+  // shuttles
+  for (const s of SHUTTLES) {
+    const p = trackAt(s.s);
+    c.save(); c.translate(p.x, p.y); c.rotate(p.ang);
+    c.shadowColor = '#00c8ff'; c.shadowBlur = 12;
+    c.fillStyle = '#e8f4ff'; rr(c, -18, -7, 36, 14, 7); c.fill();
+    c.shadowBlur = 0;
+    c.fillStyle = '#ff7a1c'; for (let i = -12; i <= 8; i += 6) c.fillRect(i, -5, 4, 3);
+    c.fillStyle = '#0a2a55'; rr(c, -14, 0, 28, 4, 2); c.fill();
+    c.fillStyle = '#00e5ff'; c.fillRect(16, -4, 3, 8);
+    const hl = c.createRadialGradient(22, 0, 0, 22, 0, 26);
+    hl.addColorStop(0, `rgba(180,240,255,${.25 + night * .45})`); hl.addColorStop(1, 'rgba(180,240,255,0)');
+    c.fillStyle = hl; c.beginPath(); c.moveTo(18, 0); c.lineTo(48, -12); c.lineTo(48, 12); c.closePath(); c.fill();
+    c.restore();
+  }
+
+  // drones
+  for (const d of DRONES) {
+    if (d.state === 'idle') continue;
+    c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(d.x + 10, d.y + 26, 9, 3, 0, 0, Math.PI * 2); c.fill();
+    c.save(); c.translate(d.x, d.y);
+    c.strokeStyle = '#cfe6ff'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(-9, -6); c.lineTo(9, 6); c.moveTo(9, -6); c.lineTo(-9, 6); c.stroke();
+    [[-9, -6], [9, -6], [-9, 6], [9, 6]].forEach(([x, y]) => {
+      c.fillStyle = 'rgba(200,230,255,.35)'; c.beginPath(); c.ellipse(x, y, 6, 2 + Math.abs(Math.sin(d.spin + x)) * 1.5, 0, 0, Math.PI * 2); c.fill();
+    });
+    c.fillStyle = '#1a2b4a'; rr(c, -5, -4, 10, 8, 2); c.fill();
+    c.fillStyle = (Math.floor(t * 4) % 2) ? '#ff6600' : '#ffd84d'; c.beginPath(); c.arc(0, 0, 1.8, 0, Math.PI * 2); c.fill();
+    if (d.state === 'out') {
+      c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = .8; c.beginPath(); c.moveTo(0, 4); c.lineTo(0, 9); c.stroke();
+      c.fillStyle = d.pkg; c.fillRect(-4, 9, 8, 7); c.strokeStyle = 'rgba(255,255,255,.6)'; c.strokeRect(-4, 9, 8, 7);
+    }
+    c.restore();
+  }
+
+  // camera nodes on top
+  if (G.cameras) {
+    c.font = '9px "Share Tech Mono", monospace';
+    CAMS.forEach((k, i) => {
+      c.fillStyle = '#1a0a12'; c.strokeStyle = '#ff3355'; c.lineWidth = 1.5;
+      c.beginPath(); c.arc(k.x, k.y, 7, 0, Math.PI * 2); c.fill(); c.stroke();
+      c.save(); c.translate(k.x, k.y); c.rotate(k.a); c.fillStyle = '#ff3355'; c.fillRect(2, -2.5, 8, 5); c.restore();
+      c.fillStyle = (Math.floor(t * 2 + i) % 2) ? '#ff3355' : '#550010';
+      c.beginPath(); c.arc(k.x, k.y, 2.2, 0, Math.PI * 2); c.fill();
+      c.fillStyle = 'rgba(255,128,151,.85)'; c.fillText('CAM-' + String(i + 1).padStart(2, '0'), k.x - 16, k.y + 18);
+    });
+  }
+
+  // sweep
+  if (G.sweep) {
+    const a = G.sweep.a, R = 640;
+    c.save(); c.translate(TOWER.x, TOWER.y);
+    for (let i = 0; i < 24; i++) {
+      c.fillStyle = `rgba(255,102,0,${.16 * (1 - i / 24)})`;
+      c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, R, a - (i + 1) * .02, a - i * .02); c.closePath(); c.fill();
+    }
+    c.strokeStyle = 'rgba(255,190,90,.95)'; c.lineWidth = 2; c.shadowColor = '#ff6600'; c.shadowBlur = 14;
+    c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(a) * R, Math.sin(a) * R); c.stroke();
+    c.restore();
+  }
+
+  // neuralink rings
+  for (const r of G.rings) {
+    if (r.r <= 0) continue;
+    c.strokeStyle = `rgba(176,77,255,${clamp(r.life / 1.4, 0, 1) * .8})`; c.lineWidth = 4; c.shadowColor = '#b04dff'; c.shadowBlur = 20;
+    c.beginPath(); c.arc(TOWER.x, TOWER.y, r.r, 0, Math.PI * 2); c.stroke(); c.shadowBlur = 0;
+  }
+
+  // falling slime
+  for (const s of G.slimes) {
+    c.save(); c.translate(s.c.x, s.y);
+    c.fillStyle = '#6ef02a'; c.shadowColor = '#7dff2e'; c.shadowBlur = 18;
+    c.beginPath(); c.moveTo(0, -26); c.bezierCurveTo(14, -6, 14, 10, 0, 12); c.bezierCurveTo(-14, 10, -14, -6, 0, -26); c.fill();
+    c.restore();
+  }
+
+  // particles
+  for (const p of G.particles) {
+    c.globalAlpha = clamp(p.life / (p.max || 1), 0, 1);
+    if (p.heart) { c.fillStyle = p.color; c.font = '12px sans-serif'; c.fillText('♥', p.x - 4, p.y); }
+    else { c.fillStyle = p.color; c.beginPath(); c.arc(p.x, p.y, p.r || 2, 0, Math.PI * 2); c.fill(); }
+  }
+  c.globalAlpha = 1;
+
+  // floaters
+  c.font = 'bold 11px "Share Tech Mono", monospace';
+  for (const f of G.floaters) { c.globalAlpha = clamp(f.life, 0, 1); c.fillStyle = f.color; c.fillText(f.text, f.x - 10, f.y); }
+  c.globalAlpha = 1;
+
+  // night tint
+  if (night > .05) { c.fillStyle = `rgba(2,4,20,${night * .42})`; c.fillRect(0, 0, W, H); }
+
+  // suppression vignette
+  if (G.suppression) {
+    const v = c.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, W * .7);
+    v.addColorStop(0, 'rgba(176,77,255,0)'); v.addColorStop(1, `rgba(176,77,255,${.18 + .06 * Math.sin(t * 2)})`);
+    c.fillStyle = v; c.fillRect(0, 0, W, H);
+  }
+
+  // hover tooltip
+  if (G.hover && G.hover.alive) {
+    const h = G.hover, txt = `${h.name} · stress ${Math.round(h.stress)}% · ${fmt(h.credits)} cr`;
+    c.font = '11px "Share Tech Mono", monospace';
+    const w = c.measureText(txt).width + 14;
+    const x = clamp(h.x + 12, 4, W - w - 4), y = clamp(h.y - 34, 4, H - 24);
+    c.fillStyle = 'rgba(4,12,30,.9)'; c.strokeStyle = 'rgba(0,200,255,.6)'; rr(c, x, y, w, 20, 5); c.fill(); c.stroke();
+    c.fillStyle = '#d8ecff'; c.fillText(txt, x + 7, y + 14);
+  }
+}
+
+function drawTower(c, t, night) {
+  const { x, y } = TOWER;
+  const glow = c.createRadialGradient(x, y - 40, 5, x, y - 40, 120);
+  glow.addColorStop(0, `rgba(255,140,40,${.35 + .1 * Math.sin(t * 2)})`); glow.addColorStop(1, 'rgba(255,140,40,0)');
+  c.fillStyle = glow; c.beginPath(); c.arc(x, y - 40, 120, 0, Math.PI * 2); c.fill();
+  // base hexagon
+  c.fillStyle = 'rgba(0,0,0,.4)'; c.beginPath(); c.ellipse(x + 4, y + 34, 46, 12, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#0d2550'; c.strokeStyle = 'rgba(0,200,255,.7)'; c.lineWidth = 1.5;
+  c.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; c.lineTo(x + Math.cos(a) * 44, y + 22 + Math.sin(a) * 14); } c.closePath(); c.fill(); c.stroke();
+  // spire
+  const sg = c.createLinearGradient(x - 14, 0, x + 14, 0);
+  sg.addColorStop(0, '#163a78'); sg.addColorStop(.5, '#6fb8ff'); sg.addColorStop(1, '#163a78');
+  c.fillStyle = sg; c.beginPath(); c.moveTo(x - 16, y + 24); c.lineTo(x - 7, y - 40); c.lineTo(x + 7, y - 40); c.lineTo(x + 16, y + 24); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(0,229,255,.6)'; c.lineWidth = 1;
+  for (let i = 0; i < 5; i++) { const yy = y + 14 - i * 12; c.beginPath(); c.moveTo(x - 13 + i * 1.5, yy); c.lineTo(x + 13 - i * 1.5, yy); c.stroke(); }
+  // eye orb
+  c.fillStyle = '#ffd45a'; c.shadowColor = '#ff9a1a'; c.shadowBlur = 25;
+  c.beginPath(); c.arc(x, y - 54, 20, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0;
+  let lx = Math.sin(t * .7) * .6, ly = Math.cos(t * .5) * .4;
+  const target = G.hover || G.selected;
+  if (target && target.alive) { const dx = target.x - x, dy = target.y - (y - 54), d = Math.hypot(dx, dy) || 1; lx = dx / d; ly = dy / d; }
+  drawEye(c, x + lx * 2, y - 54 + ly * 2, 13, lx, ly, eyeOpenVal);
+  c.fillStyle = 'rgba(255,200,140,.9)'; c.font = 'bold 10px "Orbitron", sans-serif';
+  c.fillText('HELIOS', x - 22, y + 52);
+}
+
+function drawCitizen(c, p, t) {
+  const bob = Math.sin(t * 6 + p.hue) * (p.wait > 0 ? 0 : 1.2);
+  const sel = G.selected === p;
+  // stress ring
+  const s = p.stress;
+  const col = s < 35 ? '0,229,255' : s < 65 ? '255,200,60' : '255,60,90';
+  c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(p.x, p.y + 7, 6, 2.2, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = `hsl(${p.hue},75%,55%)`;
+  c.beginPath(); c.moveTo(p.x - 5, p.y + 6 + bob * .3); c.lineTo(p.x, p.y - 3 + bob); c.lineTo(p.x + 5, p.y + 6 + bob * .3); c.closePath(); c.fill();
+  c.fillStyle = p.skin; c.beginPath(); c.arc(p.x, p.y - 6 + bob, 3.6, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = `rgba(${col},.9)`; c.lineWidth = 1.2;
+  c.beginPath(); c.arc(p.x, p.y + 1, 9, 0, Math.PI * 2); c.stroke();
+  if (p.pass) { c.fillStyle = '#ffa21a'; c.beginPath(); c.arc(p.x + 7, p.y - 7, 2.2, 0, Math.PI * 2); c.fill(); }
+  if (sel) {
+    c.strokeStyle = 'rgba(255,162,26,.95)'; c.lineWidth = 1.5; c.setLineDash([4, 3]); c.lineDashOffset = -t * 20;
+    c.beginPath(); c.arc(p.x, p.y + 1, 14, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+    c.font = '10px "Share Tech Mono", monospace'; c.fillStyle = '#ffd2ad'; c.fillText(p.name, p.x - c.measureText(p.name).width / 2, p.y + 26);
+  }
+  if (p.infraction && p.infraction.detected) {
+    const pr = 12 + (t * 20 % 10);
+    c.strokeStyle = p.infraction.major ? `rgba(255,51,85,${1 - (pr - 12) / 10})` : `rgba(255,195,107,${1 - (pr - 12) / 10})`;
+    c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y + 1, pr, 0, Math.PI * 2); c.stroke();
+    c.fillStyle = p.infraction.major ? '#ff3355' : '#ffc36b'; c.font = 'bold 13px "Orbitron", sans-serif'; c.fillText('!', p.x - 2.5, p.y - 14 + Math.sin(t * 8) * 1.5);
+  }
+}
+function drawPetMini(c, pet, t) {
+  const { x, y } = pet;
+  c.fillStyle = pet.color;
+  c.beginPath(); c.ellipse(x, y + 2, 4, 2.6, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(x - 3, y - 1, 2.4, 0, Math.PI * 2); c.fill();
+  if (pet.type === 'cat') { c.beginPath(); c.moveTo(x - 5, y - 2); c.lineTo(x - 4.5, y - 5); c.lineTo(x - 3, y - 3); c.moveTo(x - 3, y - 3); c.lineTo(x - 1.5, y - 5); c.lineTo(x - 1, y - 2); c.fill(); c.strokeStyle = pet.color; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 4, y + 2); c.quadraticCurveTo(x + 7, y - 2 + Math.sin(t * 5) * 2, x + 6, y - 4); c.stroke(); }
+  else { c.fillStyle = shade(pet.color); c.beginPath(); c.ellipse(x - 5, y - 1, 1.2, 2.2, .3, 0, Math.PI * 2); c.fill(); c.strokeStyle = pet.color; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x + 4, y + 1); c.lineTo(x + 6 + Math.sin(t * 14) * 1.5, y - 2); c.stroke(); }
+  if (pet.acc.includes('collar')) { c.fillStyle = '#00e5ff'; c.fillRect(x - 2, y, 1.5, 2); }
+}
+
+function mapPoint(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+}
+function citizenAt(p) {
+  let best = null, bd = 18;
+  for (const c of G.citizens) { if (!c.alive) continue; const d = Math.hypot(c.x - p.x, c.y - p.y); if (d < bd) { bd = d; best = c; } }
+  return best;
+}
+canvas.addEventListener('pointermove', e => { G.hover = citizenAt(mapPoint(e)); canvas.style.cursor = G.hover ? 'pointer' : 'crosshair'; });
+canvas.addEventListener('pointerleave', () => G.hover = null);
+canvas.addEventListener('click', e => {
+  Sound.init();
+  const p = mapPoint(e);
+  const c = citizenAt(p);
+  if (c) { select(c); if (innerWidth <= 900) toast(`Selected ${esc(c.name)}. Open <b>Citizen Ledger</b> tab for details.`); return; }
+  if (Math.hypot(p.x - TOWER.x, p.y - TOWER.y + 30) < 40) { Sound.buzz(true); toast('👁 HELIOS sees you, too.'); }
+});
+
+/* =========================================================
+   Entrance exam
+   ========================================================= */
+const QUESTIONS = {
+  ethics: [
+    { q: 'You find a wallet with 500 credits on the maglev platform. Nobody seems to be around. What do you do?', o: ['Return it through the HELIOS lost-and-found. Someone is always watching anyway.', 'Keep it. Credits are capped, so it barely matters.', 'Leave it on the platform. Not my problem.', 'Split it with a friend so nobody feels left out.'], a: 0 },
+    { q: 'A classmate is being mocked for their accent during Joy Hour. You:', o: ['Film it for later.', 'Step in, stand next to them, and change the subject.', 'Laugh along so you don\'t become the next target.', 'Walk away and pretend you didn\'t see.'], a: 1 },
+    { q: 'Your neighbor\'s dog barks at 3 AM every night. The Charter says neighbors never shout. You:', o: ['Shout over the fence. Once is fine.', 'Request that HELIOS slime the dog.', 'Talk to them calmly the next morning and offer to help with training.', 'Buy a louder dog.'], a: 2 }
+  ],
+  intel: [
+    { q: 'A delivery drone flies 12 km at a steady 3 km every 5 minutes. How long is the trip?', o: ['15 minutes', '36 minutes', '4 minutes', '20 minutes'], a: 3 },
+    { q: 'What comes next in the sequence: 2, 6, 12, 20, 30, ?', o: ['40', '42', '44', '36'], a: 1 },
+    { q: 'A solar panel makes 250 W at 9 AM and 40% more at noon. What is its noon output?', o: ['350 W', '290 W', '400 W', '625 W'], a: 0 },
+    { q: 'All Solarians are cared for. Mira is a Solarian. Therefore:', o: ['Mira might be cared for.', 'Mira cares for all Solarians.', 'Mira is cared for.', 'Nothing can be concluded.'], a: 2 }
+  ],
+  work: [
+    { q: 'Work in Solaria is optional. On a free afternoon, you most likely:', o: ['Volunteer at the community farm because it actually feels good.', 'Sleep for 16 hours.', 'Complain that there is nothing to do.', 'Convince others that working is pointless.'], a: 0 },
+    { q: 'During the 3 km civic fun-run, you cramp at the 2 km mark. You:', o: ['Quit and blame the course design.', 'Ride the shuttle to the finish and claim the time.', 'Slow down, stretch it out, and finish the last kilometer.', 'Lie down until a drone brings you a smoothie.'], a: 2 },
+    { q: 'Your team\'s harvest is behind schedule and it starts raining. You:', o: ['Go home. Rain is a sign.', 'Grab boots and help bring the crops in.', 'Supervise from under a roof.', 'File a weather complaint with HELIOS.'], a: 1 }
+  ]
+};
+const CAT_LABEL = { ethics: 'ETHICS & MORALS', intel: 'INTELLIGENCE', work: 'PHYSICAL WORK ETHIC' };
+const MARKERS = ['HTT CAG-repeat expansion', 'CFTR ΔF508 homozygous', 'HBB sickle variant (SS)', 'DMD exon deletion', 'BRCA1 pathogenic variant'];
+const DRUGS = ['THC metabolites', 'synthetic opioids', 'amphetamine residue', 'nicotine (vape) markers'];
+const ORIGINS = ['Former Continental Republic', 'Coastal Free Zone', 'Northern Federation', 'Pacific Archipelago', 'Unaffiliated Territory'];
+
+const exam = {};
+const STEP_LIST = [['intake', 'Intake'], ['age', 'Age'], ['q0', 'Ethics'], ['q1', 'Intellect'], ['q2', 'Work'], ['gene', 'Genetics'], ['quota', 'Quota'], ['verdict', 'Verdict']];
+
+function newApplicant() {
+  const under = Math.random() < .78;
+  return {
+    name: `${pick(FIRST)} ${pick(LAST)}`, age: under ? randi(9, 17) : randi(18, 24), origin: pick(ORIGINS),
+    drug: Math.random() < .14 ? pick(DRUGS) : null, marker: Math.random() < .14 ? pick(MARKERS) : null,
+    skill: rand(.45, .95), hue: randi(0, 359), skin: pick(SKIN), id: 'APP-' + randi(10000, 99999), stress: 20
+  };
+}
+function openExam() {
+  Sound.init(); Sound.click();
+  Object.assign(exam, { mode: exam.mode || 'random', applicant: newApplicant(), step: 'intake', done: false, newId: null, qs: [], answers: [], judge: [], results: {}, timers: [] });
+  openModal('#examModal'); renderExam();
+}
+function clearExamTimers() { (exam.timers || []).forEach(clearTimeout); exam.timers = []; }
+function later(fn, ms) { exam.timers.push(setTimeout(fn, ms)); }
+
+function renderSteps() {
+  const idx = STEP_LIST.findIndex(s => s[0] === exam.step);
+  const r = exam.results;
+  $('#examSteps').innerHTML = STEP_LIST.map(([k, n], i) => {
+    let cls = i === idx ? 'cur' : '';
+    const res = k === 'age' ? r.age : /^q\d$/.test(k) ? (exam.answers[+k[1]] !== undefined && i < idx ? 'done' : undefined) : k === 'gene' ? r.gene : k === 'quota' ? r.quota : undefined;
+    if (res === true || res === 'done') cls = 'ok'; if (res === false) cls = 'fail';
+    return `<span class="${cls}">${n}</span>`;
+  }).join('');
+}
+
+function renderExam() {
+  renderSteps();
+  const b = $('#examBody');
+  const a = exam.applicant;
+  if (exam.step === 'intake') {
+    b.innerHTML = `
+      <div class="seg"><button data-mode="random" class="${exam.mode === 'random' ? 'on' : ''}">Administer to Applicant</button><button data-mode="self" class="${exam.mode === 'self' ? 'on' : ''}">Take the Exam Yourself</button></div>
+      ${exam.mode === 'random' ? `
+        <div class="dossier">
+          <div class="avatar" style="width:90px;height:90px">${avatarSVG(a)}</div>
+          <dl><dt>Applicant</dt><dd>${esc(a.name)}</dd><dt>File</dt><dd>${a.id}</dd><dt>Age (declared)</dt><dd>${a.age}</dd><dt>Origin</dt><dd>${a.origin}</dd><dt>Genome</dt><dd style="color:var(--orange-2)">SEALED · pending scan</dd><dt>Toxicology</dt><dd style="color:var(--orange-2)">SEALED · pending scan</dd></dl>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted)">As examiner, you will review each answer the applicant gives and mark it acceptable or not. HELIOS grades in parallel and audits your judgment.</p>
+        <div class="actions"><button class="btn" id="exNew">↻ New Applicant</button><button class="btn orange" id="exBegin">Begin Screening →</button></div>`
+      : `
+        <div class="form">
+          <label>Full name<input type="text" id="exName" maxlength="28" value="${esc(exam.selfName || '')}" placeholder="Your name"></label>
+          <label>Age<input type="number" id="exAge" min="1" max="120" value="${exam.selfAge || 16}"></label>
+          <label class="chk"><input type="checkbox" id="exDrug"> I have used recreational drugs at some point.</label>
+          <label class="chk"><input type="checkbox" id="exGene"> My family carries a known hereditary disease.</label>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted)">Declarations are cross-checked against your genome and toxicology panel. HELIOS knows anyway.</p>
+        <div class="actions"><button class="btn orange" id="exBegin">Begin Screening →</button></div>`}
+      `;
+    b.querySelectorAll('[data-mode]').forEach(x => x.onclick = () => { exam.mode = x.dataset.mode; Sound.click(); renderExam(); });
+    if ($('#exNew')) $('#exNew').onclick = () => { exam.applicant = newApplicant(); Sound.scan(); renderExam(); };
+    $('#exBegin').onclick = beginExam;
+  }
+  else if (exam.step === 'age') {
+    b.innerHTML = `<div class="scanlog" id="ageLog">Verifying birth record for ${esc(a.name)}...</div><div class="progress"><i id="ageProg"></i></div><div class="actions" id="ageAct"></div>`;
+    later(() => $('#ageProg').style.width = '100%', 30);
+    later(() => {
+      const ok = a.age < 18;
+      exam.results.age = ok;
+      Sound[ok ? 'scan' : 'denied']();
+      $('#ageLog').innerHTML += `\nRegistry age: ${a.age}\nRequirement: under 18\n<span class="${ok ? 'p' : 'f'}">${ok ? '✓ PASS' : '✗ FAIL: applicant is ' + a.age + '. Solaria only admits minors.'}</span>`;
+      $('#ageAct').innerHTML = ok ? '<button class="btn orange" id="ageNext">Scenario Assessment →</button>' : '<button class="btn danger" id="ageNext">View Verdict →</button>';
+      $('#ageNext').onclick = () => { exam.step = ok ? 'q0' : 'verdict'; renderExam(); };
+      renderSteps();
+    }, 1000);
+  }
+  else if (/^q\d$/.test(exam.step)) {
+    const i = +exam.step[1];
+    const Q = exam.qs[i];
+    const self = exam.mode === 'self';
+    b.innerHTML = `<span class="qcat">${CAT_LABEL[Q.cat]} · ${i + 1}/3</span><div class="q">${esc(Q.q)}</div>
+      <div class="opts">${Q.o.map((o, k) => `<button class="opt" data-k="${k}" ${self ? '' : 'disabled'}><span class="L">${'ABCD'[k]}</span>${esc(o)}</button>`).join('')}</div>
+      <div id="qAct" class="actions"></div>`;
+    if (self) {
+      b.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
+        Sound.click();
+        exam.answers[i] = +btn.dataset.k;
+        b.querySelectorAll('.opt').forEach(x => { x.disabled = true; x.classList.toggle('chosen', x === btn); });
+        $('#qAct').innerHTML = `<span style="margin-right:auto;color:var(--muted);font-size:12px;align-self:center">Response logged. HELIOS does not disclose grading.</span><button class="btn orange" id="qNext">${i < 2 ? 'Next Scenario →' : 'Genetic Screening →'}</button>`;
+        $('#qNext').onclick = () => { exam.step = i < 2 ? 'q' + (i + 1) : 'gene'; renderExam(); };
+      });
+    } else {
+      $('#qAct').innerHTML = `<span style="margin-right:auto;color:var(--muted);font-size:12px;align-self:center">${esc(a.name.split(' ')[0])} is thinking...</span>`;
+      later(() => {
+        const correct = Math.random() < a.skill;
+        const wrong = [0, 1, 2, 3].filter(k => k !== Q.a);
+        const k = correct ? Q.a : pick(wrong);
+        exam.answers[i] = k;
+        Sound.scan();
+        b.querySelectorAll('.opt').forEach(x => x.classList.toggle('chosen', +x.dataset.k === k));
+        $('#qAct').innerHTML = `<span style="margin-right:auto;color:var(--muted);font-size:12px;align-self:center">Applicant selected <b style="color:var(--orange-2)">${'ABCD'[k]}</b>. Your ruling:</span><button class="btn danger" data-j="0">✗ Unacceptable</button><button class="btn" data-j="1">✓ Acceptable</button>`;
+        $('#qAct').querySelectorAll('[data-j]').forEach(btn => btn.onclick = () => {
+          const j = btn.dataset.j === '1';
+          exam.judge[i] = j;
+          const agree = j === (k === Q.a);
+          Sound[agree ? 'coin' : 'denied']();
+          $('#qAct').innerHTML = `<span style="margin-right:auto;font-size:12px;align-self:center;color:${agree ? '#8fffb0' : '#ff8097'}">HELIOS ${agree ? 'concurs with your ruling.' : 'overrides your ruling. Noted in your examiner file.'}</span><button class="btn orange" id="qNext">${i < 2 ? 'Next Scenario →' : 'Genetic Screening →'}</button>`;
+          $('#qNext').onclick = () => { exam.step = i < 2 ? 'q' + (i + 1) : 'gene'; renderExam(); };
+        });
+      }, rand(900, 1600));
+    }
+  }
+  else if (exam.step === 'gene') {
+    b.innerHTML = `<canvas class="helix" id="helix" width="700" height="70"></canvas><div class="progress"><i id="gProg"></i></div><div class="scanlog" id="gLog"></div><div class="actions" id="gAct"></div>`;
+    const lines = [
+      ['Sequencing 3.1 billion base pairs...', null],
+      ['Screening hereditary markers: HTT, CFTR, HBB, DMD, BRCA1...', null],
+      [a.marker ? `✗ Hereditary disease marker detected: ${a.marker}` : '✓ No hereditary disease markers detected', !a.marker],
+      ['Running toxicology panel (hair, blood, Neuralink history)...', null],
+      [a.drug ? `✗ Prior drug use detected: ${a.drug}` : '✓ No history of drug use', !a.drug]
+    ];
+    let start = performance.now();
+    const helix = $('#helix'), hc = helix.getContext('2d');
+    const anim = () => {
+      if (exam.step !== 'gene' || !$('#helix')) return;
+      const t = (performance.now() - start) / 1000;
+      hc.clearRect(0, 0, 700, 70);
+      for (let x = 0; x < 700; x += 10) {
+        const p = x / 40 + t * 3, y1 = 35 + Math.sin(p) * 22, y2 = 35 - Math.sin(p) * 22;
+        const scanned = x < Math.min(1, t / 2.8) * 700;
+        hc.strokeStyle = scanned ? 'rgba(0,229,255,.35)' : 'rgba(255,255,255,.1)'; hc.beginPath(); hc.moveTo(x, y1); hc.lineTo(x, y2); hc.stroke();
+        hc.fillStyle = scanned ? '#00e5ff' : '#335'; hc.beginPath(); hc.arc(x, y1, 3, 0, 7); hc.fill();
+        hc.fillStyle = scanned ? '#ff9a1a' : '#335'; hc.beginPath(); hc.arc(x, y2, 3, 0, 7); hc.fill();
+      }
+      const sx = Math.min(1, t / 2.8) * 700;
+      hc.fillStyle = 'rgba(255,102,0,.8)'; hc.fillRect(sx - 1, 0, 2, 70);
+      requestAnimationFrame(anim);
+    };
+    anim();
+    later(() => $('#gProg').style.width = '100%', 30);
+    $('#gProg').style.transition = 'width 2.8s linear';
+    lines.forEach(([txt, ok], i) => later(() => {
+      const log = $('#gLog'); if (!log) return;
+      log.innerHTML += `${i ? '\n' : ''}<span class="${ok === true ? 'p' : ok === false ? 'f' : ''}">${esc(txt)}</span>`;
+      Sound[ok === false ? 'denied' : 'scan']();
+    }, 400 + i * 600));
+    later(() => {
+      exam.results.gene = !a.marker && !a.drug;
+      const log = $('#gLog');
+      log.innerHTML += `\n\n<span class="${exam.results.gene ? 'p' : 'f'}">${exam.results.gene ? 'BIOLOGICAL CLEARANCE: GRANTED' : 'BIOLOGICAL CLEARANCE: DENIED (instant fail)'}</span>`;
+      $('#gAct').innerHTML = `<button class="btn ${exam.results.gene ? 'orange' : 'danger'}" id="gNext">${exam.results.gene ? 'Population Quota →' : 'View Verdict →'}</button>`;
+      $('#gNext').onclick = () => { exam.step = exam.results.gene ? 'quota' : 'verdict'; renderExam(); };
+      renderSteps();
+    }, 3400);
+  }
+  else if (exam.step === 'quota') {
+    const ok = G.population < POP_CAP;
+    exam.results.quota = ok;
+    b.innerHTML = `<div class="scanlog">Annual Population Cap check...\nCurrent citizens: ${fmt(G.population)} / ${fmt(POP_CAP)}\nOpen slots: ${fmt(Math.max(0, POP_CAP - G.population))}\n\n<span class="${ok ? 'p' : 'f'}">${ok ? '✓ Slot reserved for ' + esc(a.name) : '✗ Annual cap reached. Applicant waitlisted until next cycle.'}</span></div>
+      <div class="progress"><i style="width:${G.population / POP_CAP * 100}%"></i></div>
+      <div class="actions"><button class="btn orange" id="qtNext">View Verdict →</button></div>`;
+    Sound[ok ? 'scan' : 'denied']();
+    $('#qtNext').onclick = () => { exam.step = 'verdict'; renderExam(); };
+    renderSteps();
+  }
+  else if (exam.step === 'verdict') renderVerdict();
+}
+
+function beginExam() {
+  Sound.init(); Sound.click();
+  if (exam.mode === 'self') {
+    const name = $('#exName').value.trim();
+    const age = parseInt($('#exAge').value, 10);
+    if (!name) { toast('Enter your name to begin.', 'warn'); Sound.denied(); return; }
+    if (!(age >= 1 && age <= 120)) { toast('Enter a valid age.', 'warn'); Sound.denied(); return; }
+    exam.selfName = name; exam.selfAge = age;
+    exam.applicant = Object.assign(newApplicant(), {
+      name, age, drug: $('#exDrug').checked ? 'self-declared prior use' : null,
+      marker: $('#exGene').checked ? 'self-declared familial hereditary disease' : null
+    });
+  }
+  exam.qs = ['ethics', 'intel', 'work'].map(cat => {
+    const base = pick(QUESTIONS[cat]);
+    const order = shuffle([0, 1, 2, 3]);
+    return { cat, q: base.q, o: order.map(k => base.o[k]), a: order.indexOf(base.a) };
+  });
+  exam.step = 'age'; G.screened++; updateStats(); renderExam();
+}
+
+function renderVerdict() {
+  const a = exam.applicant, r = exam.results;
+  const scored = exam.qs.length && exam.answers.length === 3;
+  const correct = scored ? exam.qs.filter((q, i) => exam.answers[i] === q.a).length : 0;
+  r.quiz = scored ? correct >= 2 : undefined;
+  const admitted = r.age === true && r.quiz === true && r.gene === true && r.quota === true;
+  const row = (label, v, detail) => `<li><span>${label}</span><span class="${v === true ? 'p' : v === false ? 'f' : 'n'}">${v === true ? '✓ PASS' : v === false ? '✗ FAIL' : '— not evaluated'}${detail ? ' · ' + detail : ''}</span></li>`;
+  const catRows = scored ? exam.qs.map((q, i) => row(`&nbsp;&nbsp;↳ ${CAT_LABEL[q.cat]}`, exam.answers[i] === q.a)).join('') : '';
+  let audit = '';
+  if (exam.mode === 'random' && exam.judge.length === 3) {
+    const agree = exam.qs.filter((q, i) => exam.judge[i] === (exam.answers[i] === q.a)).length;
+    audit = `<div class="notice" style="border-color:rgba(0,200,255,.4);color:#bfe3ff;background:rgba(0,119,255,.06)">Examiner audit: your rulings matched HELIOS on <b>${agree}/3</b> answers. ${agree === 3 ? 'Exemplary. You may be promoted to Senior Examiner.' : agree === 2 ? 'Acceptable. Minor recalibration scheduled.' : 'Concerning. HELIOS will be grading you next.'}</div>`;
+  }
+  let reason = '';
+  if (!admitted) {
+    if (r.age === false) reason = 'Applicant must be under 18 years old.';
+    else if (r.quiz === false) reason = `Scenario assessment score ${correct}/3. Minimum 2/3 required.`;
+    else if (r.gene === false) reason = 'Failed genetic and drug screening (automatic disqualification).';
+    else if (r.quota === false) reason = 'Annual population cap of 10,000 reached.';
+  }
+  let newId = '';
+  if (admitted && !exam.done) {
+    exam.done = true;
+    G.population++; G.admitted++;
+    const c = makeCitizen({ name: a.name, age: a.age, credits: 1000, admitted: true });
+    c.hue = a.hue; c.skin = a.skin;
+    newId = c.id; exam.newId = c.id;
+    G.citizens.push(c);
+    // keep the monitored sample manageable
+    const live = alive();
+    if (live.length > 40) { const old = live.find(x => x !== c && !x.infraction && x !== G.selected); if (old) old.alive = false; }
+    G.selected = c;
+    Sound.admit();
+    log(`Citizenship granted: ${esc(a.name)} (${c.id}), age ${a.age}. Population ${fmt(G.population)}.`, 'good');
+    renderRoster(); renderProfile(); updateStats();
+  } else if (!admitted && !exam.done) {
+    exam.done = true;
+    Sound.reject();
+    log(`Application denied: ${esc(a.name)}. ${esc(reason)}`, 'bad');
+  }
+  newId = exam.newId || newId;
+  $('#examBody').innerHTML = `
+    <div class="stamp ${admitted ? 'ok' : 'no'}">${admitted ? 'ADMITTED' : 'DENIED'}</div>
+    <ul class="checks">
+      ${row('Age requirement (under 18)', r.age, 'age ' + a.age)}
+      ${row('Scenario assessment (≥ 2/3)', r.quiz, scored ? correct + '/3' : '')}
+      ${catRows}
+      ${row('Genetic &amp; drug screening', r.gene)}
+      ${row('Annual population cap', r.quota)}
+    </ul>
+    ${admitted
+      ? `<p>Welcome to Solaria, <b>${esc(a.name)}</b>. Citizen ID <b>${newId}</b>. Opening balance: <b>1,000 credits</b>, with 150 more every day until you reach 10,000. You will never have to worry again.</p>
+         <div class="notice">Charter §4 Acknowledgement: any child born to you in Solaria will be registered and repatriated at birth to preserve fair application equity.</div>`
+      : `<p style="color:#ffb3c0">${esc(reason)}</p><p style="font-size:12.5px;color:var(--muted)">Thank you for your interest in Solaria. HELIOS has retained your genome for quality assurance.</p>`}
+    ${audit}
+    <div class="actions"><button class="btn" id="vAgain">Screen Another Applicant</button><button class="btn orange" data-close>Return to Dashboard</button></div>`;
+  $('#vAgain').onclick = () => { clearExamTimers(); exam.done = false; exam.newId = null; openExam(); };
+  renderSteps();
+}
+
+/* =========================================================
+   Modals, toggles, tabs, shortcuts
+   ========================================================= */
+function openModal(sel) { document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open')); $(sel).classList.add('open'); }
+function closeModals() { document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open')); clearExamTimers(); exam.done = false; exam.newId = null; }
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-close]') || e.target.classList.contains('modal')) { Sound.click(); closeModals(); }
+});
+
+$('#charterBtn').onclick = () => { Sound.init(); Sound.chime(); openModal('#charterModal'); };
+$('#flagCanvas').onclick = $('#charterBtn').onclick;
+$('#examBtn').onclick = openExam;
+$('#payBtn').onclick = () => distribute(true);
+$('#petBtn').onclick = deployPets;
+$('#pulseBtn').onclick = pulseNeuralink;
+$('#sweepBtn').onclick = startSweep;
+$('#slimeBtn').onclick = slimeWorst;
+
+function setToggle(el, on) { el.classList.toggle('on', on); }
+$('#supToggle').onclick = () => {
+  Sound.init();
+  G.suppression = !G.suppression; setToggle($('#supToggle'), G.suppression);
+  if (G.suppression) { Sound.pulse(); G.rings.push({ r: 0, life: 1.4 }); log('Neuralink Stress Suppression ENABLED. All citizens now feel 0% stress, regardless of circumstance.', 'info'); toast('Suppression active. Everyone is fine. Everyone will stay fine.'); }
+  else { Sound.denied(); log('Neuralink Stress Suppression disabled. Natural emotions resuming.', 'warn'); }
+  updateStats(); renderProfile();
+};
+$('#camToggle').onclick = () => {
+  Sound.init();
+  G.cameras = !G.cameras; setToggle($('#camToggle'), G.cameras);
+  Sound[G.cameras ? 'scan' : 'click']();
+  if (G.cameras) { Sound.buzz(true); log(`Surveillance overlay online: ${CAMS.length} camera nodes streaming to HELIOS.`, 'info'); for (const c of alive()) if (c.infraction && !c.infraction.detected && inCamRange(c)) detect(c, 'CAM'); }
+  updateStats();
+};
+$('#sndToggle').onclick = () => { Sound.init(); Sound.enabled = !Sound.enabled; setToggle($('#sndToggle'), Sound.enabled); Sound.click(); };
+
+document.querySelectorAll('.tabs .btn').forEach(b => b.onclick = () => {
+  document.body.dataset.tab = b.dataset.tab;
+  document.querySelectorAll('.tabs .btn').forEach(x => x.classList.toggle('active', x === b));
+  Sound.click(); resize();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') return closeModals();
+  if (e.target.matches('input,textarea') || document.querySelector('.modal.open') || $('#intro')) return;
+  const k = e.key.toLowerCase();
+  const map = { e: openExam, d: () => distribute(true), p: deployPets, n: pulseNeuralink, s: startSweep, x: slimeWorst, c: () => $('#camToggle').click(), m: () => $('#sndToggle').click() };
+  if (map[k]) { e.preventDefault(); map[k](); }
+});
+
+/* =========================================================
+   Boot + main loop
+   ========================================================= */
+const flagCtx = $('#flagCanvas').getContext('2d');
+const introCanvas = $('#introFlag'), introCtx = introCanvas.getContext('2d');
+const charterCtx = $('#charterFlag').getContext('2d');
+
+function setFavicon() {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+  drawFlag(c.getContext('2d'), 64, 64, 0, 1);
+  const l = document.createElement('link'); l.rel = 'icon'; l.href = c.toDataURL(); document.head.append(l);
+}
+
+function init() {
+  for (let i = 0; i < 26; i++) G.citizens.push(makeCitizen());
+  // a couple of citizens near the cap so the 10k ceiling is visible right away
+  G.citizens[1].credits = 9950; G.citizens[1].ledger[0].amt = G.citizens[1].ledger[0].bal = 9950;
+  G.citizens[4].credits = 10000; G.citizens[4].ledger[0].amt = G.citizens[4].ledger[0].bal = 10000;
+  G.selected = G.citizens[0];
+  renderRoster(); renderProfile(); renderQueue(); updateStats(); setFavicon();
+  log('HELIOS online. 9,962 citizens distributed across Sector Prime. Suffering index: 0%.', 'good');
+  log('Reminder: launch population capped at 10,000. 38 slots remain this cycle.', 'info');
+}
+
+$('#enterBtn').onclick = () => {
+  Sound.init(); Sound.admit();
+  const intro = $('#intro');
+  intro.style.transition = 'opacity .6s'; intro.style.opacity = '0';
+  setTimeout(() => intro.remove(), 600);
+  setTimeout(() => toast('Welcome, Administrator. Start with <b>Run Entrance Screening</b> or watch the city.'), 700);
+};
+
+let last = performance.now(), statAcc = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  look.x += (look.tx - look.x) * Math.min(1, dt * 4); look.y += (look.ty - look.y) * Math.min(1, dt * 4);
+  eyeOpenVal = eyeOpen(dt);
+  const introOpen = !!document.getElementById('intro');
+  if (!introOpen) update(dt);
+  renderCity();
+  drawFlag(flagCtx, 192, 120, G.t + now / 1000, eyeOpenVal);
+  if (introOpen) drawFlag(introCtx, 720, 450, now / 1000, eyeOpenVal);
+  if ($('#charterModal').classList.contains('open')) drawFlag(charterCtx, 840, 525, now / 1000, eyeOpenVal);
+  statAcc += dt;
+  if (statAcc > .25) {
+    statAcc = 0;
+    if (!introOpen) { updateStats(); updateProfileDynamic(); updateRoster(); }
+  }
+  $('#dayProg').style.width = (G.dayT / DAY_LEN * 100) + '%';
+  $('#dayLeft').textContent = Math.ceil(DAY_LEN - G.dayT) + 's';
+  requestAnimationFrame(frame);
+}
+init();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
